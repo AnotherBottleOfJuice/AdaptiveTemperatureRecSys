@@ -29,6 +29,8 @@ class SASRec(nn.Module):
             num_layers=num_layers
         )
 
+        self.linear = nn.Linear(in_features=embedding_dim, out_features=embedding_dim)
+
         self.pad_id = num_embedding
 
     def forward(self, x):
@@ -49,4 +51,4 @@ class SASRec(nn.Module):
         attention = self.transformer(embeddings, mask=casual_mask,
                                      src_key_padding_mask=mask)
 
-        return attention
+        return self.linear(attention)
