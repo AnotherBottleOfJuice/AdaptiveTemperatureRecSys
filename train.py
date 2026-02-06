@@ -20,15 +20,15 @@ def train_epoch(model : SASRec, train_loader, optimizer):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    for i, (positives, negatives) in enumerate(tqdm(train_loader)):
+    for i, (positives, negatives) in enumerate(tqdm(train_loader, desc="Batch")):
         optimizer.zero_grad()
         positives, negatives = positives.to(device), negatives.to(device)
 
         model_input = positives[:, :-1]  # B, S, E
         positives = positives[:, 1:]
         negatives = negatives[:, 1:, :] # B, S, N, E
-        neg_embeddings = model.embedding(negatives)
-        pos_embeddings = model.embedding(positives)
+        neg_embeddings = model.input_embedding(negatives)
+        pos_embeddings = model.input_embedding(positives)
 
         output = model(model_input)
         neg_logits = torch.einsum("bse, bsne -> bsn", output, neg_embeddings)
@@ -42,3 +42,5 @@ def train_epoch(model : SASRec, train_loader, optimizer):
         optimizer.step()
 
         sum_loss += loss.item()
+
+    return sum_loss / len(train_loader)
