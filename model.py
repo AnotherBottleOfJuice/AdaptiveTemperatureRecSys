@@ -35,16 +35,19 @@ class SASRec(nn.Module):
         if reuse_embeddings:
             self.output_embedding = self.input_embedding
         else:
-            self.output_embedding = nn.Embedding(num_embeddings=num_embedding, embedding_dim=embedding_dim)
+            self.output_embedding = nn.Embedding(num_embeddings=num_embedding + 1, embedding_dim=embedding_dim)
 
         self.pad_id = num_embedding
 
     def forward(self, x):
+
+        device = x.device
+
         input_embeddings = self.input_embedding(x)
 
         seq_len = input_embeddings.shape[1]
 
-        positions = (torch.arange(seq_len, dtype=torch.long, device=input_embeddings.device)
+        positions = (torch.arange(seq_len, dtype=torch.long, device=device)
                      .unsqueeze(0).expand(x.size(0), seq_len))
         position_embeddings = self.position_embedding(positions)
 
@@ -52,7 +55,7 @@ class SASRec(nn.Module):
 
         mask = (x == self.pad_id)
 
-        casual_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
+        casual_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool().to(device)
 
         attention = self.transformer(embeddings, mask=casual_mask,
                                      src_key_padding_mask=mask)
