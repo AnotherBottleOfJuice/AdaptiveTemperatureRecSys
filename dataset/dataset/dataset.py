@@ -98,7 +98,7 @@ class Utils:
 
         collate_fn = partial(
             Utils.collate_to_batch,
-            batch_size=batch_size,
+            pad_id=dataset.pad_id,
             max_len=max_len
         )
 
