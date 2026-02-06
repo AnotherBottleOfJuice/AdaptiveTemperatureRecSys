@@ -7,10 +7,10 @@ from tqdm import tqdm
 
 from model import SASRec
 
-def show_losses(train_losses, val_losses):
-    plt.figure()
-    plt.plot([i for i in range(len(train_losses))], train_losses, label="train loss")
-    plt.plot([i for i in range(len(train_losses))], val_losses, label="val loss")
+def show_losses(train_losses, val_losses, name):
+    plt.figure(num=name)
+    plt.plot([i for i in range(len(train_losses))], train_losses, label="train")
+    plt.plot([i for i in range(len(train_losses))], val_losses, label="val")
     plt.legend()
     plt.show()
 
@@ -82,3 +82,19 @@ def validate_epoch(model: SASRec, val_loader):
     top5_acc /= len(val_loader)
     return sum_loss, top1_acc, top5_acc
 
+
+def train(model : SASRec, train_loader, val_loader, optimizer, epochs):
+    train_losses, val_losses = [], []
+    top1_accs = []
+    top5_accs = []
+
+    for _ in tqdm(range(epochs)):
+        train_losses.append(train_epoch(model, train_loader, optimizer))
+        sum_loss, top1_acc, top5_acc = validate_epoch(model, val_loader)
+
+        val_losses.append(sum_loss)
+        top1_accs.append(top1_acc)
+        top5_accs.append(top5_acc)
+
+        show_losses(train_losses, val_losses, "losses")
+        show_losses(top1_accs, top5_acc, "accuracy")
