@@ -8,6 +8,8 @@ from torch.utils.data import Dataset
 from pandas import DataFrame
 import os
 
+from functools import partial
+
 from config import NUM_WORKERS_FOR_LOADER
 
 class YambdaDataset(Dataset):
@@ -55,7 +57,7 @@ class YambdaDataset(Dataset):
 
     def __len__(self) -> int:
         return len(self.dataset)
-    
+
 
 class Utils:
 
@@ -63,7 +65,7 @@ class Utils:
     def collate_to_batch(batch, pad_id, max_len):
         batch_t = torch.tensor([[seq[i] if i < len(seq) else pad_id for i in range(max_len)] for seq in batch], dtype=torch.long)
         return batch_t
-    
+
     @staticmethod
     def collate_with_random_negatives(batch, pad_id, num_neg, max_len):
         batch_t = Utils.collate_to_batch(batch, pad_id, max_len)
@@ -75,9 +77,16 @@ class Utils:
                             dataset_type: Literal['50m', '500m', '5b'] = '500m'):
         dataset = YambdaDataset(max_seq_len=max_len, mode='train', dataset_type=dataset_type)
 
+        collate_fn = partial(
+            Utils.collate_with_random_negatives,
+            pad_id=dataset.pad_id,
+            num_neg=num_neg,
+            max_len=max_len
+        )
+
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True,
                                 num_workers=NUM_WORKERS_FOR_LOADER,
-                                collate_fn=lambda batch: Utils.collate_with_random_negatives(batch, dataset.pad_id, num_neg, max_len))
+                                collate_fn=collate_fn)
         return dataloader
 
     @staticmethod
@@ -85,9 +94,15 @@ class Utils:
                         dataset_type: Literal['50m', '500m', '5b'] = '500m'):
         dataset = YambdaDataset(max_seq_len=max_len, mode='val', dataset_type=dataset_type)
 
+        collate_fn = partial(
+            Utils.collate_to_batch,
+            batch_size=batch_size,
+            max_len=max_len
+        )
+
         dataloader = DataLoader(dataset=dataset, batch_size=batch_size,
                                 num_workers=NUM_WORKERS_FOR_LOADER,
-                                collate_fn=lambda batch: Utils.collate_to_batch(batch, dataset.pad_id, max_len))
+                                collate_fn=collate_fn)
         return dataloader
 
 
