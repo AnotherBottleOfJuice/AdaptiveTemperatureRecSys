@@ -3,7 +3,7 @@ from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
 
 import matplotlib.pyplot as plt
 
-from tqdm import tqdm
+from tqdm.notebook import tqdm
 
 from model import SASRec
 
@@ -34,8 +34,10 @@ def train_epoch(model : SASRec, train_loader, optimizer):
         neg_logits = torch.einsum("bse, bsne -> bsn", output, neg_embeddings)
         pos_logits = torch.einsum("bse, bse -> bs", output, pos_embeddings)
 
-        logits = torch.cat([neg_logits, pos_logits], dim=0)
-        gt = torch.cat([torch.zeros_like(neg_logits), torch.ones(pos_logits)], dim=0)
+        pos_logits = pos_logits.unsqueeze(-1)
+
+        logits = torch.cat([neg_logits, pos_logits], dim=-1)
+        gt = torch.cat([torch.zeros_like(neg_logits), torch.ones_like(pos_logits)], dim=-1)
 
         loss = binary_cross_entropy_with_logits(logits, gt)
         loss.backward()
