@@ -9,7 +9,8 @@ class SASRec(nn.Module):
                  num_heads: int = 4,
                  num_layers: int = 4,
                  transformer_dim = 2048,
-                 transformer_dropout = 0.1):
+                 transformer_dropout = 0.1,
+                 reuse_embeddings: bool = False):
         super(SASRec, self).__init__()
         self.embedding_dim = embedding_dim
         self.num_heads = num_heads
@@ -30,6 +31,11 @@ class SASRec(nn.Module):
         )
 
         self.linear = nn.Linear(in_features=embedding_dim, out_features=embedding_dim)
+
+        if reuse_embeddings:
+            self.output_embedding = self.input_embedding
+        else:
+            self.output_embedding = nn.Embedding(num_embeddings=num_embedding, embedding_dim=embedding_dim)
 
         self.pad_id = num_embedding
 
