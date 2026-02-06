@@ -37,7 +37,7 @@ class YambdaDataset(Dataset):
 
         self.dataset = DataFrame(self.dataset['train'])
 
-        self.dataset['item_id'], self.dataset['real_id'] = pd.factorize(self.dataset['item_id'])
+        self.dataset['item_id'], _ = pd.factorize(self.dataset['item_id'])
 
         self.pad_id = self.dataset['item_id'].max() + 1
 
