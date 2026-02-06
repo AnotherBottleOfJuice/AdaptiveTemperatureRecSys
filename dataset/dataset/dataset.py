@@ -5,6 +5,7 @@ import torch
 
 from datasets import load_dataset, load_from_disk
 from torch.utils.data import Dataset
+import pandas as pd
 from pandas import DataFrame
 import os
 
@@ -35,7 +36,8 @@ class YambdaDataset(Dataset):
             self.dataset = load_from_disk(self.path)
 
         self.dataset = DataFrame(self.dataset['train'])
-        self.dataset : DataFrame
+
+        self.dataset['item_id'], self.dataset['real_id'] = pd.factorize(self.dataset['item_id'])
 
         self.pad_id = self.dataset['item_id'].max() + 1
 
