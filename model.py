@@ -35,7 +35,7 @@ class SASRec(nn.Module):
         if reuse_embeddings:
             self.output_embedding = self.input_embedding
         else:
-            self.output_embedding = nn.Embedding(num_embeddings=num_embedding, embedding_dim=embedding_dim)
+            self.output_embedding = nn.Embedding(num_embeddings=num_embedding + 1, embedding_dim=embedding_dim)
 
         self.pad_id = num_embedding
 
