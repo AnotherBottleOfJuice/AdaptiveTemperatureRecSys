@@ -7,6 +7,7 @@ from tqdm.notebook import tqdm
 
 from model import SASRec
 
+
 def show_losses(train_losses, val_losses, name):
     plt.figure(num=name)
     plt.plot([i for i in range(len(train_losses))], train_losses, label="train")
@@ -14,7 +15,8 @@ def show_losses(train_losses, val_losses, name):
     plt.legend()
     plt.show()
 
-def train_epoch(model : SASRec, train_loader, optimizer):
+
+def train_epoch(model: SASRec, train_loader, optimizer):
     model.train()
     sum_loss = 0
 
@@ -26,7 +28,7 @@ def train_epoch(model : SASRec, train_loader, optimizer):
 
         model_input = positives[:, :-1]  # B, S, E
         positives = positives[:, 1:]
-        negatives = negatives[:, 1:, :] # B, S, N, E
+        negatives = negatives[:, 1:, :]  # B, S, N, E
         neg_embeddings = model.output_embedding(negatives)
         pos_embeddings = model.output_embedding(positives)
 
@@ -47,6 +49,7 @@ def train_epoch(model : SASRec, train_loader, optimizer):
 
     return sum_loss / len(train_loader)
 
+
 def validate_epoch(model: SASRec, val_loader):
     model.eval()
 
@@ -56,6 +59,8 @@ def validate_epoch(model: SASRec, val_loader):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    all_embeddings = model.output_embedding.weight
+
     for i, labels in enumerate(tqdm(val_loader, desc="Batch")):
         labels = labels.to(device)
 
@@ -63,9 +68,11 @@ def validate_epoch(model: SASRec, val_loader):
         labels = labels[:, 1:]
 
         model_output = model(model_input)
-        embeddings = model.output_embedding(torch.arange(0, model.pad_id + 1, device=device).expand(len(labels), model.pad_id + 1))
 
-        logits = torch.einsum("bse, bsne -> bsn", model_output, embeddings)
+        logits = torch.einsum("bse, ve -> bsv", model_output, all_embeddings)
+
+        logits = logits.reshape(-1, logits.size(-1))
+        labels = labels.reshape(-1)
 
         loss = cross_entropy(logits, labels)
         sum_loss += loss.item()
@@ -85,7 +92,7 @@ def validate_epoch(model: SASRec, val_loader):
     return sum_loss, top1_acc, top5_acc
 
 
-def train(model : SASRec, train_loader, val_loader, optimizer, epochs):
+def train(model: SASRec, train_loader, val_loader, optimizer, epochs):
     train_losses, val_losses = [], []
     top1_accs = []
     top5_accs = []
