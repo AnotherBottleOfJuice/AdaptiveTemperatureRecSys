@@ -1,5 +1,5 @@
 import torch
-from torch.nn.functional import binary_cross_entropy_with_logits
+from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
 
 import matplotlib.pyplot as plt
 
@@ -44,3 +44,41 @@ def train_epoch(model : SASRec, train_loader, optimizer):
         sum_loss += loss.item()
 
     return sum_loss / len(train_loader)
+
+def validate_epoch(model: SASRec, val_loader):
+    model.eval()
+
+    sum_loss = 0
+    top1_acc = 0
+    top5_acc = 0
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    for i, labels in enumerate(tqdm(val_loader, desc="Batch")):
+        labels = labels.to(device)
+
+        model_input = labels[:, :-1]
+        labels = labels[:, 1:]
+
+        model_output = model(model_input)
+        embeddings = model.output_embedding(torch.arange(0, model.pad_id + 1, device=device).expand(len(labels), model.pad_id + 1))
+
+        logits = torch.einsum("bse, bsne -> bsn", model_output, embeddings)
+
+        loss = cross_entropy(logits, labels)
+        sum_loss += loss.item()
+
+        top1_logits = logits.topk(1, dim=-1).indices
+        top5_logits = logits.topk(5, dim=-1).indices
+
+        gt = (labels != model.pad_id)
+        num_predicts = gt.sum().item()
+
+        top1_acc += ((labels == top1_logits) & gt).sum().item() / num_predicts
+        top5_acc += ((labels.unsqueeze(-1) == top5_logits).any(dim=-1) & gt).sum().item() / num_predicts
+
+    sum_loss /= len(val_loader)
+    top1_acc /= len(val_loader)
+    top5_acc /= len(val_loader)
+    return sum_loss, top1_acc, top5_acc
+
