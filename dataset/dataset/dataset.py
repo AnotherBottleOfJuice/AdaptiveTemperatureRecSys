@@ -30,11 +30,12 @@ class YambdaDataset(Dataset):
         else:
             self.dataset = load_from_disk(self.path)
 
-        self.dataset = pl.DataFrame(self.dataset['train'])
+        self.dataset = pl.from_arrow(self.dataset['train'].data.table)
 
-        self.dataset.with_columns(pl.col('item_id').rank("dense"))
+        self.dataset = self.dataset.with_columns(pl.col('item_id').rank("dense"))
 
         self.pad_id = 0
+        self.num_tokens = self.dataset.max()['item_id'].item() + 1
 
         sep = self.dataset.max()['timestamp'] - self.SECONDS_IN_DAY * 7
 
@@ -46,11 +47,11 @@ class YambdaDataset(Dataset):
         self.dataset = self.dataset.sort('timestamp')
         self.dataset = (
             self
-            .dataset.group_by('user_id', maintain_order=True)
-            .agg(pl.col('item_id').list.tail(max_seq_len))
+            .dataset.group_by('uid', maintain_order=True)
+            .agg(pl.col('item_id').tail(max_seq_len))
         )
         self.dataset: pl.DataFrame
-        self.dataset = [torch.tensor(i) for i in self.dataset['item_id'].to_list()]
+        self.dataset = [torch.LongTensor(i) for i in self.dataset['item_id'].to_list()]
 
     def __getitem__(self, idx) -> torch.Tensor:
         return self.dataset[idx]
@@ -68,9 +69,9 @@ class Utils:
         return batch_t
 
     @staticmethod
-    def collate_with_random_negatives(batch, pad_id, num_neg, max_len):
+    def collate_with_random_negatives(batch, pad_id, max_token, num_neg, max_len):
         batch_t = Utils.collate_to_batch(batch, pad_id, max_len)
-        neg = torch.randint(0, pad_id, (*batch_t.shape, num_neg), dtype=torch.long)
+        neg = torch.randint(0, max_token, (*batch_t.shape, num_neg), dtype=torch.long)
         return [batch_t, neg]
 
     @staticmethod
@@ -82,6 +83,7 @@ class Utils:
         collate_fn = partial(
             Utils.collate_with_random_negatives,
             pad_id=dataset.pad_id,
+            max_token=dataset.num_tokens,
             num_neg=num_neg,
             max_len=max_len
         )
