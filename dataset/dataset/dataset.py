@@ -5,8 +5,7 @@ import torch
 
 from datasets import load_dataset, load_from_disk
 from torch.utils.data import Dataset
-import pandas as pd
-from pandas import DataFrame
+import polars as pl
 import os
 
 from functools import partial
@@ -18,7 +17,8 @@ class YambdaDataset(Dataset):
     DEFAULT_PATH = './datasets/yambda_likes_dataset'
     SECONDS_IN_DAY = 24 * 60 * 60
 
-    def __init__(self, path : str | None = None,
+    def __init__(self,
+                 path : str | None = None,
                  dataset_type : Literal['50m', '500m', '5b'] = '50m',
                  overwrite : bool = False,
                  mode : Literal['train', 'val'] = 'train',
@@ -35,27 +35,30 @@ class YambdaDataset(Dataset):
         else:
             self.dataset = load_from_disk(self.path)
 
-        self.dataset = DataFrame(self.dataset['train'])
+        self.dataset = pl.DataFrame(self.dataset['train'])
 
-        self.dataset['item_id'], _ = pd.factorize(self.dataset['item_id'])
+        self.dataset.with_columns(pl.col('item_id').rank("dense"))
 
-        self.pad_id = self.dataset['item_id'].max() + 1
+        self.pad_id = 0
 
-        start = self.dataset['timestamp'].min()
-        end = self.dataset['timestamp'].max()
+        sep = self.dataset.max()['timestamp'] - self.SECONDS_IN_DAY * 7
 
         if mode == 'train':
-            self.dataset = self.dataset[self.dataset['timestamp'] < end - 7 * self.SECONDS_IN_DAY]
+            self.dataset = self.dataset.filter(pl.col('timestamp') <= sep)
         else:
-            self.dataset = self.dataset[self.dataset['timestamp'] >= end - 7 * self.SECONDS_IN_DAY]
+            self.dataset = self.dataset.filter(pl.col('timestamp') > sep)
 
-        self.dataset : DataFrame
-        self.dataset.sort_values(by=['timestamp'], inplace=True)
-        self.dataset['num'] = self.dataset.groupby('uid').cumcount() // max_seq_len
-        self.dataset = self.dataset.groupby(['uid', 'num'])['item_id'].apply(list).reset_index()
+        self.dataset = self.dataset.sort('timestamp')
+        self.dataset = (
+            self
+            .dataset.group_by('user_id', maintain_order=True)
+            .agg(pl.col('item_id').list.tail(max_seq_len))
+        )
+        self.dataset : pl.DataFrame
+        self.dataset = [torch.tensor(i) for i in self.dataset['item_id'].to_list()]
 
     def __getitem__(self, idx) -> torch.Tensor:
-        return torch.tensor(self.dataset.iloc[idx]['item_id'], dtype=torch.long)
+        return self.dataset[idx]
 
     def __len__(self) -> int:
         return len(self.dataset)
