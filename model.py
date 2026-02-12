@@ -1,22 +1,23 @@
-from torch import nn
 import torch
+from torch import nn
 
 
 class SASRec(nn.Module):
-    def __init__(self, num_embedding: int,
+    def __init__(self,
+                 num_embeddings: int,
                  seq_len: int,
                  embedding_dim: int = 256,
                  num_heads: int = 4,
                  num_layers: int = 4,
-                 transformer_dim = 2048,
-                 transformer_dropout = 0.1,
+                 transformer_dim=2048,
+                 transformer_dropout=0.1,
                  reuse_embeddings: bool = False):
         super(SASRec, self).__init__()
         self.embedding_dim = embedding_dim
         self.num_heads = num_heads
         self.num_layers = num_layers
 
-        self.input_embedding = nn.Embedding(num_embeddings=num_embedding + 1, embedding_dim=embedding_dim)
+        self.input_embedding = nn.Embedding(num_embeddings=num_embeddings + 1, embedding_dim=embedding_dim)
         self.position_embedding = nn.Embedding(num_embeddings=seq_len, embedding_dim=embedding_dim)
 
         self.transformer = nn.TransformerEncoder(
@@ -35,9 +36,9 @@ class SASRec(nn.Module):
         if reuse_embeddings:
             self.output_embedding = self.input_embedding
         else:
-            self.output_embedding = nn.Embedding(num_embeddings=num_embedding + 1, embedding_dim=embedding_dim)
+            self.output_embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
 
-        self.pad_id = num_embedding
+        self.pad_id = 0
 
     def forward(self, x):
 
@@ -53,11 +54,10 @@ class SASRec(nn.Module):
 
         embeddings = input_embeddings + position_embeddings
 
-        mask = (x == self.pad_id)
+        causal_mask = torch.nn.Transformer.generate_square_subsequent_mask(seq_len, device=device)
 
-        casual_mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool().to(device)
-
-        attention = self.transformer(embeddings, mask=casual_mask,
-                                     src_key_padding_mask=mask)
+        attention = self.transformer(embeddings,
+                                     mask=causal_mask,
+                                     is_causal=True)
 
         return self.linear(attention)
