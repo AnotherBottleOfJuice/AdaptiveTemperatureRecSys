@@ -5,6 +5,7 @@ from typing import Literal
 import polars as pl
 import torch
 from datasets import load_dataset, load_from_disk
+from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 
 
@@ -64,8 +65,13 @@ class Utils:
 
     @staticmethod
     def collate_to_batch(batch, pad_id, max_len):
-        batch_t = torch.tensor([[seq[i] if i < len(seq) else pad_id for i in range(max_len)] for seq in batch],
-                               dtype=torch.long)
+        batch_t = pad_sequence(batch, batch_first=True, padding_value=pad_id)
+        batch_t = batch_t.long()
+        if batch_t.shape[1] < max_len:
+            shape = list(batch_t.shape)
+            shape[1] = max_len - shape[1]
+            batch_t = torch.concat((batch_t,
+                                    torch.ones(*shape, dtype=torch.long) * pad_id), 1)
         return batch_t
 
     @staticmethod
