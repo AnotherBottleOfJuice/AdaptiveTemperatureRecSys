@@ -2,9 +2,10 @@ import os
 from functools import partial
 from typing import Literal
 
+import datasets
 import polars as pl
 import torch
-from datasets import load_dataset, load_from_disk
+from datasets import load_dataset
 from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import DataLoader, Dataset
 
@@ -23,15 +24,17 @@ class YambdaDataset(Dataset):
         self.path = path if path is not None else YambdaDataset.DEFAULT_PATH
         self.path += dataset_type
 
+        os.makedirs(os.path.dirname(self.path), exist_ok=True)
+
         self.dataset = None
 
         if overwrite or not os.path.exists(self.path):
             self.dataset = load_dataset("yandex/yambda", data_dir=f"flat/{dataset_type}", data_files="likes.parquet")
-            self.dataset.save_to_disk(self.path)
+            self.dataset : datasets.Dataset
+            self.dataset = self.dataset['train'].to_polars()
+            self.dataset.write_parquet(self.path)
         else:
-            self.dataset = load_from_disk(self.path)
-
-        self.dataset = pl.from_arrow(self.dataset['train'].data.table)
+            self.dataset = pl.read_parquet(self.path)
 
         self.dataset = self.dataset.with_columns(pl.col('item_id').rank("dense"))
 
