@@ -27,12 +27,11 @@ def train_epoch(model: SASRec, train_loader, optimizer):
 
         model_input = positives[:, :-1]  # B, S, E
         positives = positives[:, 1:]
-        negatives = negatives[:, 1:, :]  # B, S, N, E
         neg_embeddings = model.output_embedding(negatives)
         pos_embeddings = model.output_embedding(positives)
 
         output = model(model_input)
-        neg_logits = torch.einsum("bse, bsne -> bsn", output, neg_embeddings)
+        neg_logits = torch.matmul(output, neg_embeddings.t())
         pos_logits = torch.einsum("bse, bse -> bs", output, pos_embeddings)
 
         pos_logits = pos_logits.unsqueeze(-1)
@@ -76,10 +75,13 @@ def validate_epoch(model: SASRec, val_loader):
 
         model_output: torch.Tensor = model(model_input)  # B, S, E
 
-        model_output_flat = model_output.flatten()  # B*S, E
+        model_output_flat = model_output.flatten(end_dim=1)  # B*S, E
         targets_flat = targets.flatten()  # B*S
 
         mask = (targets_flat != model.pad_id)
+
+        if sum(mask) == 0:
+            continue
 
         valid_output = model_output_flat[mask]  # N, E
         valid_targets = targets_flat[mask]  # N
