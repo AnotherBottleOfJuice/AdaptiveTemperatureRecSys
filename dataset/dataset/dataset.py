@@ -80,7 +80,7 @@ class Utils:
     @staticmethod
     def collate_with_random_negatives(batch, pad_id, max_token, num_neg, max_len):
         batch_t = Utils.collate_to_batch(batch, pad_id, max_len)
-        neg = torch.randint(0, max_token, (*batch_t.shape, num_neg), dtype=torch.long)
+        neg = torch.randint(0, max_token, (num_neg, ), dtype=torch.long)
         return [batch_t, neg]
 
     @staticmethod
