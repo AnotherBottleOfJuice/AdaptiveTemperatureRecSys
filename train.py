@@ -60,9 +60,9 @@ def train_epoch(model: SASRec, train_loader, optimizer):
 def validate_epoch(model: SASRec, val_loader):
     model.eval()
 
-    sum_loss = 0
-    correct_top1 = 0
-    correct_top5 = 0
+    losses = []
+    top1_correct = 0
+    top5_correct = 0
     total = 0
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -72,49 +72,56 @@ def validate_epoch(model: SASRec, val_loader):
         labels = labels.to(device)
 
         model_input = labels[:, :-1]
-        labels = labels[:, 1:]
+        targets: torch.Tensor = labels[:, 1:]
 
-        model_output = model(model_input)  # B, S, E
-        logits = torch.einsum("bse, ve -> bsv", model_output, all_embeddings)
+        model_output: torch.Tensor = model(model_input)  # B, S, E
 
-        logits = logits.reshape(-1, logits.size(-1))
-        labels = labels.reshape(-1)
+        model_output_flat = model_output.flatten()  # B*S, E
+        targets_flat = targets.flatten()  # B*S
 
-        loss = cross_entropy(logits, labels)
-        sum_loss += loss.item()
+        mask = (targets_flat != model.pad_id)
 
-        mask = (labels != model.pad_id).float()
+        valid_output = model_output_flat[mask]  # N, E
+        valid_targets = targets_flat[mask]  # N
+
+        logits = torch.matmul(valid_output, all_embeddings.t())  # N, V
+        loss = cross_entropy(logits, valid_targets)
+        losses.append(loss.item())
+
+        top5_indices = torch.topk(logits, k=5, dim=-1).indices  # N, 5
+        top1_pred = logits.argmax(dim=-1)  # N
+
+        top1_correct += (top1_pred == valid_targets).sum().item()
+        top5_correct += (top5_indices == valid_targets.unsqueeze(-1)).any(dim=-1).sum().item()
         total += mask.sum().item()
 
-        top1 = logits.argmax(dim=-1)
-        top5 = logits.topk(5, dim=-1).indices
-
-        correct_top1 += ((top1 == labels) * mask).sum().item()
-        correct_top5 += (((top5 == labels.unsqueeze(-1)).any(dim=-1)) * mask).sum().item()
-
-    avg_loss = sum_loss / len(val_loader)
-    top1_acc = correct_top1 / total
-    top5_acc = correct_top5 / total
+    avg_loss = sum(losses) / len(losses)
+    top1_acc = top1_correct / total
+    top5_acc = top5_correct / total
 
     return avg_loss, top1_acc, top5_acc
 
 
-def train(model: SASRec, train_loader, val_loader, optimizer, epochs):
+def train(model: SASRec, train_loader, val_loader, optimizer,
+          epochs, scheduler=None):
     train_losses, val_losses = [], []
     top1_accs = []
     top5_accs = []
 
     for epoch in tqdm(range(epochs)):
+        train_losses.append(train_epoch(model, train_loader, optimizer))
+
         sum_loss, top1_acc, top5_acc = validate_epoch(model, val_loader)
 
         val_losses.append(sum_loss)
         top1_accs.append(top1_acc)
         top5_accs.append(top5_acc)
 
-        train_losses.append(train_epoch(model, train_loader, optimizer))
-
         print(f"Epoch {epoch}: train_loss={train_losses[-1]:.4f}, val_loss={val_losses[-1]:.4f}, "
               f"top1={top1_acc:.4f}, top5={top5_acc:.4f}")
 
         show_metrics(train_losses, val_losses, "train", "val", "losses")
         show_metrics(top1_accs, top5_accs, "top-1", "top-5", "accuracy")
+
+        if scheduler is not None:
+            scheduler.step()
