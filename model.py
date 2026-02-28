@@ -6,11 +6,13 @@ class SASRec(nn.Module):
     def __init__(self,
                  num_embeddings: int,
                  seq_len: int,
+                 unk: int,
                  embedding_dim: int = 256,
                  num_heads: int = 4,
                  num_layers: int = 4,
                  transformer_dim=2048,
                  transformer_dropout=0.1,
+                 linear_dropout=0.1,
                  reuse_embeddings: bool = False):
         super(SASRec, self).__init__()
         self.embedding_dim = embedding_dim
@@ -26,19 +28,23 @@ class SASRec(nn.Module):
                 nhead=num_heads,
                 dim_feedforward=transformer_dim,
                 dropout=transformer_dropout,
-                batch_first=True
+                batch_first=True,
+                norm_first=True,
             ),
-            num_layers=num_layers
+            num_layers=num_layers,
+            enable_nested_tensor=False
         )
 
         self.linear = nn.Linear(in_features=embedding_dim, out_features=embedding_dim)
+        self.dropout = nn.Dropout(p=linear_dropout)
 
         if reuse_embeddings:
             self.output_embedding = self.input_embedding
         else:
-            self.output_embedding = nn.Embedding(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
+            self.output_embedding = nn.Embedding(num_embeddings=num_embeddings + 1, embedding_dim=embedding_dim)
 
         self.pad_id = 0
+        self.UNK = unk
 
     def forward(self, x):
 
@@ -59,5 +65,6 @@ class SASRec(nn.Module):
         attention = self.transformer(embeddings,
                                      mask=causal_mask,
                                      is_causal=True)
-
+        self.dropout(attention)
         return self.linear(attention)
+
