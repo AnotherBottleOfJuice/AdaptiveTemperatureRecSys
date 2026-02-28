@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import torch
-from torch.nn.functional import binary_cross_entropy_with_logits, cross_entropy
+from torch.nn.functional import cross_entropy
 from tqdm.notebook import tqdm
 
 from model import SASRec
@@ -20,8 +20,9 @@ def train_epoch(model: SASRec, train_loader, optimizer):
     sum_loss = 0
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # all_embeddings = model.output_embedding.weight  # V, E
 
-    for i, (positives, negatives) in enumerate(tqdm(train_loader, desc="Batch")):
+    for i, (positives, negatives) in enumerate(tqdm(train_loader, desc="Training")):
         optimizer.zero_grad()
         positives, negatives = positives.to(device), negatives.to(device)
 
@@ -30,24 +31,22 @@ def train_epoch(model: SASRec, train_loader, optimizer):
         neg_embeddings = model.output_embedding(negatives)
         pos_embeddings = model.output_embedding(positives)
 
-        output = model(model_input)
-        neg_logits = torch.matmul(output, neg_embeddings.t())
-        pos_logits = torch.einsum("bse, bse -> bs", output, pos_embeddings)
+        output = model(model_input)  # B, S, E
+        # print(neg_embeddings.shape)
+        neg_logits = torch.matmul(output, neg_embeddings.T)
+        pos_logits = (output * pos_embeddings).sum(dim=-1, keepdim=True)
+        # all_logits = torch.matmul(output, all_embeddings.t())
 
-        pos_logits = pos_logits.unsqueeze(-1)
+        logits = torch.cat([pos_logits, neg_logits], dim=-1)
+        logits = logits.reshape(logits.size(0) * logits.size(1), -1)
+        loss = cross_entropy(logits, torch.zeros(logits.shape[0],
+                                                 device=logits.device,
+                                                 dtype=torch.long))
 
-        logits = torch.cat([neg_logits, pos_logits], dim=-1)
-        gt = torch.cat([torch.zeros_like(neg_logits), torch.ones_like(pos_logits)], dim=-1)
-
-        loss = binary_cross_entropy_with_logits(logits, gt, reduction="none")
-
-        mask = (positives != model.pad_id)
-        mask = mask.unsqueeze(-1).float()
-
-        loss = loss * mask
-        loss = loss.sum() / mask.sum()
+        # loss = cross_entropy(all_logits.flatten(end_dim=1), positives.flatten())
 
         loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
         optimizer.step()
 
         sum_loss += loss.item()
@@ -60,14 +59,14 @@ def validate_epoch(model: SASRec, val_loader):
     model.eval()
 
     losses = []
-    top1_correct = 0
-    top5_correct = 0
+    top100_correct = 0
+    top10_correct = 0
     total = 0
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     all_embeddings = model.output_embedding.weight  # V, E
 
-    for labels in tqdm(val_loader, desc="Batch"):
+    for labels in tqdm(val_loader, desc="Validation"):
         labels = labels.to(device)
 
         model_input = labels[:, :-1]
@@ -78,7 +77,7 @@ def validate_epoch(model: SASRec, val_loader):
         model_output_flat = model_output.flatten(end_dim=1)  # B*S, E
         targets_flat = targets.flatten()  # B*S
 
-        mask = (targets_flat != model.pad_id)
+        mask = (targets_flat != model.pad_id)  # B*S
 
         if sum(mask) == 0:
             continue
@@ -90,40 +89,41 @@ def validate_epoch(model: SASRec, val_loader):
         loss = cross_entropy(logits, valid_targets)
         losses.append(loss.item())
 
-        top5_indices = torch.topk(logits, k=5, dim=-1).indices  # N, 5
-        top1_pred = logits.argmax(dim=-1)  # N
+        top100_indices = torch.topk(logits, k=100, dim=-1).indices  # N, 10
+        top10_indices = top100_indices[:, :10]  # N, 10
 
-        top1_correct += (top1_pred == valid_targets).sum().item()
-        top5_correct += (top5_indices == valid_targets.unsqueeze(-1)).any(dim=-1).sum().item()
+        top10_correct += (top10_indices == valid_targets.unsqueeze(-1)).any(dim=-1).sum().item()
+        top100_correct += (top100_indices == valid_targets.unsqueeze(-1)).any(dim=-1).sum().item()
+
         total += mask.sum().item()
 
     avg_loss = sum(losses) / len(losses)
-    top1_acc = top1_correct / total
-    top5_acc = top5_correct / total
+    top10_acc = top10_correct / total
+    top100_acc = top100_correct / total
 
-    return avg_loss, top1_acc, top5_acc
+    return avg_loss, top100_acc, top10_acc
 
 
 def train(model: SASRec, train_loader, val_loader, optimizer,
           epochs, scheduler=None):
     train_losses, val_losses = [], []
-    top1_accs = []
-    top5_accs = []
+    top100_accs = []
+    top10_accs = []
 
     for epoch in tqdm(range(epochs)):
         train_losses.append(train_epoch(model, train_loader, optimizer))
 
-        sum_loss, top1_acc, top5_acc = validate_epoch(model, val_loader)
+        sum_loss, top100_acc, top10_acc = validate_epoch(model, val_loader)
 
         val_losses.append(sum_loss)
-        top1_accs.append(top1_acc)
-        top5_accs.append(top5_acc)
+        top100_accs.append(top100_acc)
+        top10_accs.append(top10_acc)
 
         print(f"Epoch {epoch}: train_loss={train_losses[-1]:.4f}, val_loss={val_losses[-1]:.4f}, "
-              f"top1={top1_acc:.4f}, top5={top5_acc:.4f}")
+              f"top10={top10_acc:.4f}, top100={top100_acc:.4f}")
 
         show_metrics(train_losses, val_losses, "train", "val", "losses")
-        show_metrics(top1_accs, top5_accs, "top-1", "top-5", "accuracy")
+        show_metrics(top100_accs, top10_accs, "top-100", "top-10", "accuracy")
 
         if scheduler is not None:
             scheduler.step()
