@@ -2,8 +2,9 @@ import torch
 
 from model import Graph
 from train import train_loop
+from eval import eval_loop
 from dataset import (TrainingDataset, get_train_histories, get_train_events,
-                     get_general_data, get_item_to_token)
+                     get_general_data, get_item_to_token, get_test_histories)
 
 train, test, embeddings, artists, test_targets = get_general_data()
 item_to_token = get_item_to_token(train)
@@ -36,4 +37,11 @@ train_loop(
     optimizer=optimizer,
     grad_clip=1.0,
     grad_accum_steps=1
+)
+
+eval_loop(
+    compiled_graph,
+    test_histories=get_test_histories(test, train_events),
+    test_targets=test_targets,
+    item_to_token=item_to_token,
 )
