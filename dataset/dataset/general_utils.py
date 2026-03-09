@@ -33,8 +33,7 @@ def get_general_data():
     return train, test, embeddings, artists, test_targets
 
 
-def get_item_to_token():
-    train, *_ = get_general_data()
+def get_item_to_token(train):
     return (
         train
         .select("item_id")  # берём только item_id (проще и быстрее)
