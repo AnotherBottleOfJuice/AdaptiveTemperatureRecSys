@@ -11,9 +11,10 @@ PATH_ARTISTS = os.path.join(DATA_DIR, "artists.parquet")
 TOPK = 100
 CORE_MIN_INTERACTIONS_PER_ITEM = 5
 TEST_INTERVAL_SECONDS = 7 * 24 * 60 * 60
-VOCAB_ITEMS = 30_000
-MAX_EVENTS_PER_USER = 100  # включая BOS
-MAX_LEN_PER_USER = 100  # итоговая длина истории, включая BOS
+VOCAB_SIZE = 157_157
+NEGATIVE_ITEMS = 1_000
+MAX_TRAIN_EVENTS_PER_USER = 100  # включая BOS
+MAX_LEN = 100  # включая BOS
 BOS = 0
 
 # Для воспроизводимости
@@ -25,10 +26,11 @@ __all__ = [
     "PATH_EMBEDDINGS",
     "PATH_ARTISTS",
     "TOPK",
+    "NEGATIVE_ITEMS",
     "CORE_MIN_INTERACTIONS_PER_ITEM",
     "TEST_INTERVAL_SECONDS",
-    "VOCAB_ITEMS",
-    "MAX_EVENTS_PER_USER",
-    "MAX_LEN_PER_USER",
+    "VOCAB_SIZE",
+    "MAX_TRAIN_EVENTS_PER_USER",
+    "MAX_LEN",
     "BOS",
 ]

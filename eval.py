@@ -6,7 +6,7 @@ from typing import Dict, List
 from dataset import TestDataset
 from model import Graph
 from metrics_utils import evaluate
-from config import TOPK, VOCAB_ITEMS
+from config import TOPK, VOCAB_SIZE
 
 
 def eval_loop(
@@ -46,6 +46,6 @@ def eval_loop(
     return evaluate(
         targets=test_targets,
         candidates=dict(candidates_df.iter_rows()),
-        catalog_size=VOCAB_ITEMS,
+        catalog_size=VOCAB_SIZE,
         topk=TOPK
     )

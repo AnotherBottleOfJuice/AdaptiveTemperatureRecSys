@@ -3,12 +3,14 @@ from dataclasses import dataclass
 import numpy as np
 import polars as pl
 import torch
+from config import VOCAB_SIZE, NEGATIVE_ITEMS
 
 
 @dataclass
 class TrainingBatch:
     inputs: torch.Tensor
     targets: torch.Tensor
+    negatives: torch.Tensor
     size: int
 
 
@@ -22,7 +24,9 @@ class TrainingDataset:
             chunk_rows: int = 64_000,
             shuffle: bool = True,
             seed: int | None = 42,
-            pin_memory: bool = True
+            pin_memory: bool = True,
+            vocab_size: int = VOCAB_SIZE,
+            negative_items: int = NEGATIVE_ITEMS,
     ):
         self.df = df
         self.batch_size = batch_size
@@ -32,6 +36,8 @@ class TrainingDataset:
         self.shuffle = shuffle
         self.seed = seed
         self.pin_memory = pin_memory
+        self.vocab_size = vocab_size
+        self.negative_items = negative_items
 
         self.batch_num_tokens = batch_size * seq_len + 1
         self.total_num_tokens = int(self.df.get_column("token_id").list.len().sum())
@@ -58,5 +64,7 @@ class TrainingDataset:
                 t = t_cpu.to(self.device)
                 inputs = t[:-1].view((self.batch_size, self.seq_len))
                 targets = t[1:].view((self.batch_size, self.seq_len))
-                yield TrainingBatch(inputs=inputs, targets=targets, size=inputs.numel())
+                negatives = torch.randint(1, self.vocab_size, (self.negative_items,), device=self.device)
+                yield TrainingBatch(inputs=inputs, targets=targets,
+                                    negatives=negatives, size=inputs.numel())
                 buf = buf[self.batch_num_tokens:]
