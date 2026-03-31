@@ -6,6 +6,7 @@ requires-python = ">=3.13"
 dependencies = [
     "matplotlib>=3.10.8",
     "dataset",
+    "model",
     "datasets>=4.5.0",
     "pandas>=3.0.0",
     "polars>=1.38.1",
@@ -18,7 +19,10 @@ dependencies = [
 [tool.uv.workspace]
 members = [
     "dataset",
+    "model"
 ]
 
 [tool.uv.sources]
 dataset = { workspace = true }
+model = { workspace = true }
+
