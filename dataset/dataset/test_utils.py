@@ -1,6 +1,6 @@
 import polars as pl
 
-from config import MAX_LEN_PER_USER, BOS
+from config import MAX_LEN, BOS
 
 
 def get_test_users(test: pl.DataFrame) -> pl.DataFrame:
@@ -11,21 +11,23 @@ def get_test_users(test: pl.DataFrame) -> pl.DataFrame:
     )
 
 
-def get_test_users_events(test: pl.DataFrame, train_events: pl.DataFrame) -> pl.DataFrame:
+def get_test_users_events(test: pl.DataFrame, train_events: pl.DataFrame,
+                          max_len: int = MAX_LEN) -> pl.DataFrame:
     return (
         train_events
         .join(get_test_users(test), on="uid", how="semi")
         .sort("timestamp")
         .group_by("uid", maintain_order=True)
-        .tail(n=MAX_LEN_PER_USER - 2)
+        .tail(n=max_len - 2)
         .select(["uid", "token_id"])
     )
 
 
-def get_test_histories(test: pl.DataFrame, train_events: pl.DataFrame) -> pl.DataFrame:
+def get_test_histories(test: pl.DataFrame, train_events: pl.DataFrame,
+                       bos: int = BOS) -> pl.DataFrame:
     test_histories = (
         pl.concat([
-            get_test_users(test).with_columns(pl.lit(BOS, dtype=pl.UInt32).alias('token_id')),
+            get_test_users(test).with_columns(pl.lit(bos, dtype=pl.UInt32).alias('token_id')),
             get_test_users_events(test, train_events),
         ])
         .group_by('uid', maintain_order=True)

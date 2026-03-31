@@ -27,7 +27,8 @@ def train_loop(
 
         num_batches = len(train_dataloader)
 
-        for batch_idx in tqdm.tqdm(range(num_batches), total=num_batches, desc=f"epoch {epoch}"):
+        for batch_idx in tqdm.tqdm(range(num_batches // grad_accum_steps),
+                                   total=num_batches, desc=f"epoch {epoch}"):
 
             last_step = (epoch == num_epochs - 1) and (batch_idx == num_batches - 1)
 
