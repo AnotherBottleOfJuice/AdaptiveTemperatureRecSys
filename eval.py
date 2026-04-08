@@ -1,5 +1,6 @@
 import polars as pl
 import tqdm
+import torch.nn.functional as F
 import torch
 from typing import Dict, List
 
@@ -26,7 +27,11 @@ def eval_loop(
                     torch.arange(len(batch.lengths)),
                     batch.lengths - 1
                 ]
-                logits = graph.head(last_hidden_state)
+
+                weights = F.normalize(graph.head.weight, dim=-1)
+                last_hidden_state_norm = F.normalize(last_hidden_state, dim=-1)
+
+                logits = last_hidden_state_norm @ weights.T
 
             logits[:, 0] = -torch.inf
 
