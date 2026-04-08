@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torch.utils.tensorboard import SummaryWriter
+from comet_ml import Experiment
 
 from dataset import TrainingBatch
 from config import LOG_Q_CORRECTION
@@ -34,7 +34,7 @@ class Graph(nn.Module):
         self.log_q_correction = log_q_correction
         self.tokens_passed = 0
 
-    def forward(self, batch: TrainingBatch, writer: SummaryWriter | None = None):
+    def forward(self, batch: TrainingBatch, writer: Experiment | None = None):
         with ((torch.autocast(device_type="cuda", dtype=torch.bfloat16))):
             x: torch.Tensor = self.gpt(batch.inputs)  # (B, S, h)
             pos_weights = self.head(batch.targets)  # (B, S, h)
@@ -48,10 +48,10 @@ class Graph(nn.Module):
             neg_logits = torch.matmul(x, neg_weights.T)  # (B, S, N)
 
             if writer is not None:
-                writer.add_scalar("train/pos_logit_mean", pos_logits.mean(), self.tokens_passed)
-                writer.add_scalar("train/neg_logit_mean", neg_logits.mean(), self.tokens_passed)
-                writer.add_scalar("train/neg_logit_max", neg_logits.max(), self.tokens_passed)
-                writer.add_scalar("train/pos_logit_min", pos_logits.min(), self.tokens_passed)
+                writer.log_metric("train/pos_logit_mean", value=pos_logits.mean(), step=self.tokens_passed)
+                writer.log_metric("train/neg_logit_mean", value=neg_logits.mean(), step=self.tokens_passed)
+                writer.log_metric("train/neg_logit_max", value=neg_logits.max(), step=self.tokens_passed)
+                writer.log_metric("train/pos_logit_min", value=pos_logits.min(), step=self.tokens_passed)
 
             if self.log_q_correction > 0.0 and batch.positive_log_q is not None and batch.negative_log_q is not None:
                 pos_logits = pos_logits - self.log_q_correction * batch.positive_log_q.to(pos_logits.dtype)
