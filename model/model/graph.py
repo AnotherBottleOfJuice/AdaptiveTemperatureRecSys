@@ -1,8 +1,10 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
 
 from dataset import TrainingBatch
+from config import LOG_Q_CORRECTION
 from .gpt import GPT
 
 
@@ -14,7 +16,9 @@ class Graph(nn.Module):
             n_layers: int = 4,
             d_model: int = 256,
             n_heads: int = 4,
-            dropout: float = 0.0
+            dropout: float = 0.0,
+            tau: float = 1.0,
+            log_q_correction: float = LOG_Q_CORRECTION,
     ):
         super().__init__()
         self.gpt = GPT(
@@ -25,19 +29,40 @@ class Graph(nn.Module):
             n_heads=n_heads,
             dropout=dropout,
         )
-        self.head = nn.Linear(d_model, vocab_size, bias=False)
+        self.head = nn.Embedding(vocab_size, d_model)
+        self.tau = tau
+        self.log_q_correction = log_q_correction
+        self.tokens_passed = 0
 
-    def forward(self, batch: TrainingBatch):
-        with (torch.autocast(device_type="cuda", dtype=torch.bfloat16)):
+    def forward(self, batch: TrainingBatch, writer: SummaryWriter | None = None):
+        with ((torch.autocast(device_type="cuda", dtype=torch.bfloat16))):
             x: torch.Tensor = self.gpt(batch.inputs)  # (B, S, h)
-            pos_weights = self.head.weight[batch.targets]  # (B, S, h)
-            neg_weights = self.head.weight[batch.negatives]  # (N, h)
-            pos_logist = torch.sum(x * pos_weights, dim=2)  # (B, S)
-            neg_logits = torch.matmul(x, neg_weights.T)  # (B, S, N)
-            logits = torch.concat((pos_logist.unsqueeze(2), neg_logits), dim=2)  # (B, S, N + 1)
+            pos_weights = self.head(batch.targets)  # (B, S, h)
+            neg_weights = self.head(batch.negatives)  # (N, h)
 
-        return F.cross_entropy(
-            logits.view(-1, logits.size(-1)),
-            torch.zeros(logits.size(0) * logits.size(1),
-                        device=logits.device, dtype=torch.long),
-        )
+            x = F.normalize(x, dim=-1)
+            pos_weights = F.normalize(pos_weights, dim=-1)
+            neg_weights = F.normalize(neg_weights, dim=-1)
+
+            pos_logits = torch.sum(x * pos_weights, dim=2)  # (B, S)
+            neg_logits = torch.matmul(x, neg_weights.T)  # (B, S, N)
+
+            if writer is not None:
+                writer.add_scalar("train/pos_logit_mean", pos_logits.mean(), self.tokens_passed)
+                writer.add_scalar("train/neg_logit_mean", neg_logits.mean(), self.tokens_passed)
+                writer.add_scalar("train/neg_logit_max", neg_logits.max(), self.tokens_passed)
+                writer.add_scalar("train/pos_logit_min", pos_logits.min(), self.tokens_passed)
+
+            if self.log_q_correction > 0.0 and batch.positive_log_q is not None and batch.negative_log_q is not None:
+                pos_logits = pos_logits - self.log_q_correction * batch.positive_log_q.to(pos_logits.dtype)
+                neg_logits = (neg_logits -
+                              self.log_q_correction * batch.negative_log_q.to(neg_logits.dtype).view(1, 1, -1))
+
+            logits = torch.concat([
+                pos_logits.unsqueeze(2),
+                neg_logits
+            ], dim=-1)
+
+            self.tokens_passed += batch.size
+
+        return -(pos_logits / self.tau - torch.logsumexp(logits / self.tau, dim=2)).mean()

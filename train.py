@@ -57,7 +57,7 @@ def train_loop(
                 curr_tokens += batch.size
 
                 with torch.autocast("cuda", torch.bfloat16):
-                    loss = graph(batch)
+                    loss = graph(batch, writer=writer)
 
                 loss = loss / grad_accum_steps
                 train_loss += float(loss.detach())

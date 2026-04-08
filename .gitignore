@@ -207,3 +207,9 @@ marimo/_lsp/
 __marimo__/
 
 datasets/
+
+# Dataset files
+artists.parquet
+embeddings.parquet
+interactions.parquet
+dataset.zip
