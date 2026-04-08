@@ -1,13 +1,12 @@
 import time
 import tqdm
 import torch
-from torch.utils.tensorboard import SummaryWriter
+import comet_ml
 
 
 def train_loop(
         graph,
         train_dataloader,
-        log_dir: str,
         optimizer,
         scheduler=None,
         num_epochs: int = 1,
@@ -17,7 +16,7 @@ def train_loop(
         validation_func=None,
 ):
     graph.train()
-    writer = SummaryWriter(log_dir=log_dir)
+    writer = comet_ml.start(project_name='AdaptiveTemperature')
 
     tokens_passed = 0
     global_step = 0
@@ -42,7 +41,7 @@ def train_loop(
                     for name, value in metrics.items():
                         if torch.is_tensor(value):
                             value = float(value.detach().cpu())
-                        writer.add_scalar(f"valid/{name}", value, tokens_passed)
+                        writer.log_metric(f"valid/{name}", value=value, step=tokens_passed)
 
             torch.cuda.synchronize()
             train_step_t0 = time.time()
@@ -65,24 +64,23 @@ def train_loop(
 
             tokens_passed += curr_tokens
 
-            writer.add_scalar("train/loss", train_loss, tokens_passed)
+            writer.log_metric("train/loss", value=train_loss, step=tokens_passed)
 
             if grad_clip > 0.0:
                 grad_norm = torch.nn.utils.clip_grad_norm_(graph.parameters(), grad_clip)
-                writer.add_scalar("optim/grad_norm", float(grad_norm.detach().cpu()), tokens_passed)
+                writer.log_metric("optim/grad_norm", value=float(grad_norm.detach().cpu()), step=tokens_passed)
 
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
-                writer.add_scalar("optim/lr", optimizer.param_groups[0]["lr"], tokens_passed)
+                writer.log_metric("optim/lr", value=optimizer.param_groups[0]["lr"], step=tokens_passed)
 
             torch.cuda.synchronize()
             train_step_t1 = time.time()
 
             dt = train_step_t1 - train_step_t0
-            writer.add_scalar("time/train_step_time(s)", dt, tokens_passed)
-            writer.add_scalar("time/tokens_per_sec(k)", (curr_tokens / dt) // 1000, tokens_passed)
+            writer.log_metric("time/train_step_time(s)", value=dt, step=tokens_passed)
+            writer.log_metric("time/tokens_per_sec(k)", value=(curr_tokens / dt) // 1000, step=tokens_passed)
 
             global_step += 1
 
-    writer.close()
