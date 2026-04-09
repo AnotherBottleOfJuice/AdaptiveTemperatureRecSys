@@ -22,6 +22,9 @@ BOS = 0
 # Для воспроизводимости
 np.random.seed(42)
 
+#API
+COMET_API_KEY = os.getenv("COMET_API_KEY", "")
+
 __all__ = [
     "DATA_DIR",
     "PATH_INTERACTIONS",
@@ -37,4 +40,5 @@ __all__ = [
     "MAX_LEN",
     "BOS",
     "LOG_Q_CORRECTION",
+    "COMET_API_KEY",
 ]

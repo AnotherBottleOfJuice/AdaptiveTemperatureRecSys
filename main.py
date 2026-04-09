@@ -33,7 +33,6 @@ train_loop(
     compiled_graph,
     num_epochs=5,
     train_dataloader=dataloader,
-    log_dir='logs/test',
     optimizer=optimizer,
     grad_clip=1.0,
     grad_accum_steps=1
