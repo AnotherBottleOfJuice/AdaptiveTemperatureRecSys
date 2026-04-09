@@ -1,7 +1,15 @@
 import time
 import tqdm
 import torch
-import comet_ml
+from comet_ml import Experiment
+
+from config import COMET_API_KEY
+
+
+def _as_float(value):
+    if torch.is_tensor(value):
+        return float(value.detach().cpu())
+    return float(value)
 
 
 def train_loop(
@@ -14,9 +22,16 @@ def train_loop(
         grad_clip: float = 0.0,
         eval_every: int = -1,
         validation_func=None,
+        writer: Experiment | None = None,
 ):
     graph.train()
-    writer = comet_ml.start(project_name='AdaptiveTemperature')
+    if writer is None:
+        writer = Experiment(
+            api_key=COMET_API_KEY,
+            project_name='AdaptiveTemperature',
+            workspace='maksim-bessolitsyn',
+
+        )
 
     tokens_passed = 0
     global_step = 0
@@ -39,9 +54,7 @@ def train_loop(
                     graph.train()
 
                     for name, value in metrics.items():
-                        if torch.is_tensor(value):
-                            value = float(value.detach().cpu())
-                        writer.log_metric(f"valid/{name}", value=value, step=tokens_passed)
+                        writer.log_metric(f"valid/{name}", value=_as_float(value), step=tokens_passed)
 
             torch.cuda.synchronize()
             train_step_t0 = time.time()
@@ -68,12 +81,12 @@ def train_loop(
 
             if grad_clip > 0.0:
                 grad_norm = torch.nn.utils.clip_grad_norm_(graph.parameters(), grad_clip)
-                writer.log_metric("optim/grad_norm", value=float(grad_norm.detach().cpu()), step=tokens_passed)
+                writer.log_metric("optim/grad_norm", value=_as_float(grad_norm), step=tokens_passed)
 
             optimizer.step()
             if scheduler is not None:
                 scheduler.step()
-                writer.log_metric("optim/lr", value=optimizer.param_groups[0]["lr"], step=tokens_passed)
+                writer.log_metric("optim/lr", value=_as_float(optimizer.param_groups[0]["lr"]), step=tokens_passed)
 
             torch.cuda.synchronize()
             train_step_t1 = time.time()
@@ -83,4 +96,3 @@ def train_loop(
             writer.log_metric("time/tokens_per_sec(k)", value=(curr_tokens / dt) // 1000, step=tokens_passed)
 
             global_step += 1
-

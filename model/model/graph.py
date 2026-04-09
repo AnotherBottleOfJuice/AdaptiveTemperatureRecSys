@@ -3,7 +3,6 @@ from torch import nn
 import torch.nn.functional as F
 from comet_ml import Experiment
 
-from dataset import TrainingBatch
 from config import LOG_Q_CORRECTION
 from .gpt import GPT
 
@@ -19,6 +18,7 @@ class Graph(nn.Module):
             dropout: float = 0.0,
             tau: float = 1.0,
             log_q_correction: float = LOG_Q_CORRECTION,
+            is_cosine_similarity: bool = True,
     ):
         super().__init__()
         self.gpt = GPT(
@@ -33,16 +33,18 @@ class Graph(nn.Module):
         self.tau = tau
         self.log_q_correction = log_q_correction
         self.tokens_passed = 0
+        self.is_cosine_similarity = is_cosine_similarity
 
-    def forward(self, batch: TrainingBatch, writer: Experiment | None = None):
+    def forward(self, batch, writer: Experiment | None = None):
         with ((torch.autocast(device_type="cuda", dtype=torch.bfloat16))):
             x: torch.Tensor = self.gpt(batch.inputs)  # (B, S, h)
             pos_weights = self.head(batch.targets)  # (B, S, h)
             neg_weights = self.head(batch.negatives)  # (N, h)
 
-            x = F.normalize(x, dim=-1)
-            pos_weights = F.normalize(pos_weights, dim=-1)
-            neg_weights = F.normalize(neg_weights, dim=-1)
+            if self.is_cosine_similarity:
+                x = F.normalize(x, dim=-1)
+                pos_weights = F.normalize(pos_weights, dim=-1)
+                neg_weights = F.normalize(neg_weights, dim=-1)
 
             pos_logits = torch.sum(x * pos_weights, dim=2)  # (B, S)
             neg_logits = torch.matmul(x, neg_weights.T)  # (B, S, N)
@@ -65,4 +67,8 @@ class Graph(nn.Module):
 
             self.tokens_passed += batch.size
 
-        return -(pos_logits / self.tau - torch.logsumexp(logits / self.tau, dim=2)).mean()
+        return F.cross_entropy(
+            logits.view(-1, logits.size(-1)) / self.tau,
+            torch.zeros(logits.size(0) * logits.size(1),
+                        device=logits.device, dtype=torch.long),
+        )
