@@ -1,3 +1,5 @@
+from typing import Callable
+
 import torch
 from torch import nn
 import torch.nn.functional as F
@@ -6,6 +8,7 @@ from comet_ml import Experiment
 from config import LOG_Q_CORRECTION
 from .gpt import GPT
 
+Tau_generator = Callable[['Graph', torch.Tensor, torch.Tensor, 'TrainingBatch'], float]
 
 class Graph(nn.Module):
     def __init__(
@@ -16,7 +19,7 @@ class Graph(nn.Module):
             d_model: int = 256,
             n_heads: int = 4,
             dropout: float = 0.0,
-            tau: float = 1.0,
+            tau: float | Tau_generator = 1.0,
             log_q_correction: float = LOG_Q_CORRECTION,
             is_cosine_similarity: bool = True,
     ):
@@ -29,7 +32,7 @@ class Graph(nn.Module):
             n_heads=n_heads,
             dropout=dropout,
         )
-        self.head = nn.Embedding(vocab_size, d_model)
+        self.head = nn.Linear(d_model, vocab_size, bias=False)
         self.tau = tau
         self.log_q_correction = log_q_correction
         self.tokens_passed = 0
@@ -38,8 +41,8 @@ class Graph(nn.Module):
     def forward(self, batch, writer: Experiment | None = None):
         with ((torch.autocast(device_type="cuda", dtype=torch.bfloat16))):
             x: torch.Tensor = self.gpt(batch.inputs)  # (B, S, h)
-            pos_weights = self.head(batch.targets)  # (B, S, h)
-            neg_weights = self.head(batch.negatives)  # (N, h)
+            pos_weights = self.head.weight[batch.targets]  # (B, S, h)
+            neg_weights = self.head.weight[batch.negatives]  # (N, h)
 
             if self.is_cosine_similarity:
                 x = F.normalize(x, dim=-1)
@@ -55,6 +58,8 @@ class Graph(nn.Module):
                 writer.log_metric("train/neg_logit_max", value=neg_logits.max(), step=self.tokens_passed)
                 writer.log_metric("train/pos_logit_min", value=pos_logits.min(), step=self.tokens_passed)
 
+                self.tokens_passed += batch.size
+
             if self.log_q_correction > 0.0 and batch.positive_log_q is not None and batch.negative_log_q is not None:
                 pos_logits = pos_logits - self.log_q_correction * batch.positive_log_q.to(pos_logits.dtype)
                 neg_logits = (neg_logits -
@@ -65,10 +70,16 @@ class Graph(nn.Module):
                 neg_logits
             ], dim=-1)
 
-            self.tokens_passed += batch.size
+        if isinstance(self.tau, float):
+            tau = self.tau
+        else:
+            tau = self.tau(self, pos_logits, neg_logits, batch)
+
+        if writer is not None:
+            writer.log_metric("train/tau", value=tau, step=self.tokens_passed)
 
         return F.cross_entropy(
-            logits.view(-1, logits.size(-1)) / self.tau,
+            logits.view(-1, logits.size(-1)) / tau,
             torch.zeros(logits.size(0) * logits.size(1),
                         device=logits.device, dtype=torch.long),
         )
