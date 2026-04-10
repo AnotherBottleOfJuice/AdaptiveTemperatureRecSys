@@ -37,11 +37,19 @@ def get_general_data(path_interactions: str = PATH_INTERACTIONS,
 
     return train, test, embeddings, artists, test_targets
 
-
-def get_item_to_token(train, vocab_size: int = None):
+def get_item_to_freq(train : pl.DataFrame):
     return (
         train
-        .select("item_id")  # берём только item_id (проще и быстрее)
+        .select("item_id")
+        .to_series()
+        .value_counts(normalize=True, name='freq')
+    )
+
+
+def get_item_to_token(train : pl.DataFrame, vocab_size: int = None):
+    return (
+        train
+        .select("item_id")
         .group_by('item_id').len().rename({'len': 'count'})
         .sort('item_id')
         .reverse()
