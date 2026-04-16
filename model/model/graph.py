@@ -5,7 +5,7 @@ from torch import nn
 import torch.nn.functional as F
 from comet_ml import Experiment
 
-from config import LOG_Q_CORRECTION
+from config import LOG_Q_CORRECTION, BOS
 from .gpt import GPT
 
 Tau_generator = Callable[['Graph', torch.Tensor, torch.Tensor, 'TrainingBatch'], float]
@@ -60,11 +60,6 @@ class Graph(nn.Module):
 
                 self.tokens_passed += batch.size
 
-            if self.log_q_correction > 0.0 and batch.positive_log_q is not None and batch.negative_log_q is not None:
-                pos_logits = pos_logits - self.log_q_correction * batch.positive_log_q.to(pos_logits.dtype)
-                neg_logits = (neg_logits -
-                              self.log_q_correction * batch.negative_log_q.to(neg_logits.dtype).view(1, 1, -1))
-
             logits = torch.concat([
                 pos_logits.unsqueeze(2),
                 neg_logits
@@ -78,8 +73,22 @@ class Graph(nn.Module):
         if writer is not None:
             writer.log_metric("train/tau", value=tau, step=self.tokens_passed)
 
+        scaled_logits = logits / tau
+
+        if self.log_q_correction > 0.0 and batch.positive_log_q is not None and batch.negative_log_q is not None:
+            pos_log_q = batch.positive_log_q.to(scaled_logits.dtype).unsqueeze(2)
+            neg_log_q = batch.negative_log_q.to(scaled_logits.dtype).view(1, 1, -1)
+            log_q = torch.concat([
+                pos_log_q,
+                neg_log_q.expand(scaled_logits.size(0), scaled_logits.size(1), -1),
+            ], dim=-1)
+            scaled_logits = scaled_logits - self.log_q_correction * log_q
+
+        if writer is not None:
+            writer.log_metric("train/scaled_logit_mean", value=scaled_logits.mean(), step=self.tokens_passed)
+
         return F.cross_entropy(
-            logits.view(-1, logits.size(-1)) / tau,
+            scaled_logits.view(-1, scaled_logits.size(-1)),
             torch.zeros(logits.size(0) * logits.size(1),
                         device=logits.device, dtype=torch.long),
         )
