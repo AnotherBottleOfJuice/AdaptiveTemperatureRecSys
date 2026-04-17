@@ -47,20 +47,27 @@ class TrainingDataset:
         self.batch_num_tokens = batch_size * seq_len + 1
         self.total_num_tokens = int(self.df.get_column("token_id").list.len().sum())
 
-        uniform_prob = 1.0 / max(self.vocab_size - 1, 1)
-        self.uniform_log_q = float(np.log(uniform_prob))
+        self.uniform_prob = float(uniform_negative_items) / max(self.vocab_size - 1, 1)
 
     def __len__(self):
         return self.total_num_tokens // self.batch_num_tokens
 
-    def _in_batch_negative_log_q(self, batch_token_ids: torch.Tensor, ndx: torch.Tensor) -> torch.Tensor:
-        batch_size = max(int(batch_token_ids.numel()), 1)
-        sampled_token_ids = batch_token_ids.flatten()[ndx]
-        multiplicity = torch.bincount(sampled_token_ids, minlength=self.vocab_size).to(self.device)
+    def _in_batch_negative_q(self, batch_token_ids: torch.Tensor, sampled_token_ids: torch.Tensor) -> torch.Tensor:
+        batch_tokens = batch_token_ids.flatten().to(torch.long)
+        batch_size = max(int(batch_tokens.numel()), 1)
+
+        # Guard against out-of-range token ids to avoid CUDA device-side asserts.
+        valid_batch_mask = (batch_tokens >= 0) & (batch_tokens < self.vocab_size)
+        safe_batch_tokens = batch_tokens[valid_batch_mask]
+        multiplicity = torch.bincount(safe_batch_tokens, minlength=self.vocab_size).to(self.device)
         q = multiplicity.to(dtype=torch.float32) / float(batch_size)
         q[BOS] = 1
-        q = torch.clamp(q[sampled_token_ids], min=self.min_freq)
-        return torch.log(q)
+
+        sampled_token_ids = sampled_token_ids.to(torch.long)
+        sampled_q = torch.full(sampled_token_ids.shape, self.min_freq, device=self.device, dtype=torch.float32)
+        valid_sampled_mask = (sampled_token_ids >= 0) & (sampled_token_ids < self.vocab_size)
+        sampled_q[valid_sampled_mask] = q[sampled_token_ids[valid_sampled_mask]]
+        return torch.clamp(sampled_q, min=self.min_freq)
 
     def __iter__(self):
         df = self.df
@@ -96,15 +103,22 @@ class TrainingDataset:
 
                 negatives = torch.concat([uniform_negatives, in_batch_negatives[in_batch_mask]])
 
-                negative_log_q = torch.concat([
-                    torch.full((uniform_negatives.numel(),), self.uniform_log_q, device=self.device),
-                    self._in_batch_negative_log_q(t, ndx)[in_batch_mask],
-                ])
+                positive_q = (
+                    torch.full_like(targets, self.uniform_prob, dtype=torch.float32)
+                    + self.in_batch_negative_items
+                    * self._in_batch_negative_q(t, targets.flatten()).view_as(targets)
+                )
+
+                negative_q = (
+                    torch.full((negatives.numel(),), self.uniform_prob, device=self.device, dtype=torch.float32)
+                    + self.in_batch_negative_items
+                    * self._in_batch_negative_q(t, negatives)
+                )
 
                 yield TrainingBatch(inputs=inputs,
                                     targets=targets,
                                     negatives=negatives,
                                     size=inputs.numel(),
-                                    negative_log_q=negative_log_q,
-                                    positive_log_q=None)
+                                    negative_log_q=negative_q.log(),
+                                    positive_log_q=positive_q.log())
                 buf = buf[self.batch_num_tokens:]
