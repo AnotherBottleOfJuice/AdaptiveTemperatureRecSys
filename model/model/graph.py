@@ -1,26 +1,24 @@
-from typing import Callable
-
 import torch
 from torch import nn
 import torch.nn.functional as F
 from comet_ml import Experiment
 
-from config import LOG_Q_CORRECTION, BOS
+from config import LOG_Q_CORRECTION
 from dataset import TrainingBatch
 from .gpt import GPT
+from .tau import Tau
 
-Tau_generator = Callable[['Graph', torch.Tensor, torch.Tensor, 'TrainingBatch'], float]
 
 class Graph(nn.Module):
     def __init__(
             self,
             vocab_size: int,
             max_seq_len: int,
+            tau: Tau,
             n_layers: int = 4,
             d_model: int = 256,
             n_heads: int = 4,
             dropout: float = 0.0,
-            tau: float | Tau_generator = 1.0,
             log_q_correction: float = LOG_Q_CORRECTION,
             is_cosine_similarity: bool = True,
     ):
@@ -36,10 +34,10 @@ class Graph(nn.Module):
         self.head = nn.Linear(d_model, vocab_size, bias=False)
         self.tau = tau
         self.log_q_correction = log_q_correction
-        self.tokens_passed = 0
+        self.register_buffer("tokens_passed", torch.zeros((), dtype=torch.float32), persistent=False)
         self.is_cosine_similarity = is_cosine_similarity
 
-    def forward(self, batch, writer: Experiment | None = None):
+    def forward(self, batch: TrainingBatch, writer: Experiment | None = None):
         with ((torch.autocast(device_type="cuda", dtype=torch.bfloat16))):
             x: torch.Tensor = self.gpt(batch.inputs)  # (B, S, h)
             pos_weights = self.head.weight[batch.targets]  # (B, S, h)
@@ -54,25 +52,28 @@ class Graph(nn.Module):
             neg_logits = torch.matmul(x, neg_weights.T)  # (B, S, N)
 
             if writer is not None:
-                writer.log_metric("train/pos_logit_mean", value=pos_logits.mean(), step=self.tokens_passed)
-                writer.log_metric("train/neg_logit_mean", value=neg_logits.mean(), step=self.tokens_passed)
-                writer.log_metric("train/neg_logit_max", value=neg_logits.max(), step=self.tokens_passed)
-                writer.log_metric("train/pos_logit_min", value=pos_logits.min(), step=self.tokens_passed)
+                step = int(self.tokens_passed.item())
+                writer.log_metric("train/pos_logit_mean", value=pos_logits.mean(), step=step)
+                writer.log_metric("train/neg_logit_mean", value=neg_logits.mean(), step=step)
+                writer.log_metric("train/neg_logit_max", value=neg_logits.max(), step=step)
+                writer.log_metric("train/pos_logit_min", value=pos_logits.min(), step=step)
 
-                self.tokens_passed += batch.size
+            self.tokens_passed.add_(float(batch.size))
 
             logits = torch.concat([
                 pos_logits.unsqueeze(2),
                 neg_logits
             ], dim=-1)
 
-        if isinstance(self.tau, float):
-            tau = self.tau
-        else:
-            tau = self.tau(self, pos_logits, neg_logits, batch)
+        tau = self.tau(self, pos_logits, neg_logits, batch)
+        tau = tau.to(device=logits.device, dtype=torch.float32)
+        logits = logits.to(dtype=torch.float32)
 
         if writer is not None:
-            writer.log_metric("train/tau", value=tau, step=self.tokens_passed)
+            step = int(self.tokens_passed.item())
+            writer.log_metric("train/tau", value=float(tau.mean()), step=step) if writer is not None else None
+            writer.log_metric("train/tau_min", value=float(tau.min()), step=step) if writer is not None else None
+            writer.log_metric("train/tau_max", value=float(tau.max()), step=step) if writer is not None else None
 
         scaled_logits = logits / tau
 
@@ -86,7 +87,9 @@ class Graph(nn.Module):
             scaled_logits = scaled_logits - self.log_q_correction * log_q
 
         if writer is not None:
-            writer.log_metric("train/scaled_logit_mean", value=scaled_logits.mean(), step=self.tokens_passed)
+            writer.log_metric("train/scaled_logit_mean",
+                              value=scaled_logits.mean(),
+                              step=int(self.tokens_passed.item()))
 
         return F.cross_entropy(
             scaled_logits.view(-1, scaled_logits.size(-1)),

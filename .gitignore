@@ -213,3 +213,5 @@ artists.parquet
 embeddings.parquet
 interactions.parquet
 dataset.zip
+dataset/dataset.zip
+model/model.zip
