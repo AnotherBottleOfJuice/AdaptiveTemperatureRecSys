@@ -1,3 +1,4 @@
+import numpy as np
 import polars as pl
 
 from config import (PATH_EMBEDDINGS, PATH_ARTISTS, PATH_INTERACTIONS,
@@ -29,10 +30,10 @@ def get_general_data(path_interactions: str = PATH_INTERACTIONS,
     test = test.filter(pl.col('uid').is_in(train['uid'].implode()))
 
     test_targets = {
-        i[0]: i[1]
-        for i in test.group_by('uid').agg('item_id').rows()
+            i[0]: np.array(i[1])
+            for i in test.group_by('uid').agg('item_id').rows()
     }
-
+    
     embeddings = embeddings.filter(pl.col('item_id').is_in(interactions['item_id'].implode()))
 
     return train, test, embeddings, artists, test_targets

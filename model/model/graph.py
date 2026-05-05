@@ -1,4 +1,5 @@
 import torch
+import torch.distributed as dist
 from torch import nn
 import torch.nn.functional as F
 from comet_ml import Experiment
@@ -58,7 +59,8 @@ class Graph(nn.Module):
                 writer.log_metric("train/neg_logit_max", value=neg_logits.max(), step=step)
                 writer.log_metric("train/pos_logit_min", value=pos_logits.min(), step=step)
 
-            self.tokens_passed.add_(float(batch.size))
+            world_size = dist.get_world_size() if dist.is_initialized() else 1
+            self.tokens_passed.add_(float(batch.size * world_size))
 
             logits = torch.concat([
                 pos_logits.unsqueeze(2),
@@ -71,9 +73,9 @@ class Graph(nn.Module):
 
         if writer is not None:
             step = int(self.tokens_passed.item())
-            writer.log_metric("train/tau", value=float(tau.mean()), step=step) if writer is not None else None
-            writer.log_metric("train/tau_min", value=float(tau.min()), step=step) if writer is not None else None
-            writer.log_metric("train/tau_max", value=float(tau.max()), step=step) if writer is not None else None
+            writer.log_metric("train/tau", value=float(tau.mean().detach()), step=step) if writer is not None else None
+            writer.log_metric("train/tau_min", value=float(tau.min().detach()), step=step) if writer is not None else None
+            writer.log_metric("train/tau_max", value=float(tau.max().detach()), step=step) if writer is not None else None
 
         scaled_logits = logits / tau
 

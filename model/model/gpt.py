@@ -30,8 +30,6 @@ class GPT(nn.Module):
 
         self.ln_f = torch.nn.LayerNorm(d_model)
 
-        self.head = torch.nn.Linear(d_model, vocab_size)
-
     def forward(self, token_ids: Tensor) -> Tensor:
         B, T = token_ids.shape
         assert T <= self.max_seq_len

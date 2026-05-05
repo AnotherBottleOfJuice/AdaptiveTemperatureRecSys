@@ -4,8 +4,8 @@ from config import MAX_TRAIN_EVENTS_PER_USER, BOS
 
 
 def get_train_events(train: pl.DataFrame, item_to_token_id: pl.DataFrame,
-                     max_events_per_user: int = MAX_TRAIN_EVENTS_PER_USER,
-                     item_to_freq: pl.DataFrame | None = None) -> pl.DataFrame:
+                     item_to_freq: pl.DataFrame | None = None,
+                     max_events_per_user: int = MAX_TRAIN_EVENTS_PER_USER,) -> pl.DataFrame:
     train_events = (
         train
         .join(item_to_token_id, on='item_id', how='inner')

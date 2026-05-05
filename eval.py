@@ -1,6 +1,6 @@
-from comet_ml import Experiment
+from unittest import result
+
 import polars as pl
-import tqdm
 import torch.nn.functional as F
 import torch
 from typing import Dict, List
@@ -10,19 +10,30 @@ from metrics_utils import evaluate
 from config import TOPK, VOCAB_SIZE
 
 
-def eval_loop(
-        graph: Graph,
-        test_dataset,
-        test_histories: pl.DataFrame,
-        test_targets: Dict[int, List[int]],
-        item_to_token: pl.DataFrame,
-        writer: Experiment | None = None
-) -> Dict[str, float]:
-    with torch.inference_mode():
+class Evaluator:
+    def __init__(self,
+                test_dataloader,
+                test_histories,
+                test_targets, 
+                item_to_token, 
+                vocab_size=VOCAB_SIZE,
+                device="cuda",
+                topk=TOPK
+            ):
+        self.test_dataloader = test_dataloader
+        self.test_histories = test_histories
+        self.test_targets = test_targets
+        self.item_to_token = item_to_token
+        self.vocab_size = vocab_size
+        self.device = device
+        self.topk = topk
+
+    @torch.inference_mode()
+    def _generate_candidates(self, graph: Graph) -> List[torch.Tensor]:
         all_candidates = []
 
-        for batch in tqdm.tqdm(test_dataset):
-            with torch.autocast(device_type='cuda', dtype=torch.float):
+        for batch in self.test_dataloader:
+            with torch.autocast(device_type="cuda", dtype=torch.float):
                 hidden_states = graph.gpt(batch.token_ids)
                 last_hidden_state = hidden_states[
                     torch.arange(len(batch.lengths)),
@@ -41,26 +52,32 @@ def eval_loop(
 
             _, indices = torch.topk(logits, k=TOPK)
             all_candidates.append(indices.cpu())
+        
+        return all_candidates
+    
+    def _prepare_candidates(self, candidates: List[torch.Tensor]) -> pl.DataFrame:
+        return (
+            pl.DataFrame({"uid": self.test_histories['uid'], "token_id": candidates})
+            .explode("token_id")
+            .join(self.item_to_token, on="token_id", how="left")
+            .group_by("uid", maintain_order=True)
+            .agg(pl.col("item_id"))
+        )
 
-    candidates = torch.cat(all_candidates, dim=0)
+    def __call__(self, graph: Graph) -> Dict[str, float]:
+        graph.eval()
+        candidates = torch.concat(self._generate_candidates(graph), dim=0)
+        candidates_df = self._prepare_candidates(candidates)
 
-    candidates_df = pl.DataFrame({"uid": test_histories['uid'], "token_id": candidates})
+        targets = {uid: torch.as_tensor(targets, dtype=torch.long) for uid, targets in self.test_targets.items()}
+        candidates_map = {
+            uid: torch.as_tensor(item_ids, dtype=torch.long)
+            for uid, item_ids in candidates_df.iter_rows()
+        }
 
-    candidates_df = candidates_df.explode("token_id")
-
-    candidates_df = candidates_df.join(item_to_token, on="token_id", how="left")
-
-    candidates_df = candidates_df.group_by("uid", maintain_order=True).agg(pl.col("item_id"))
-
-    result = evaluate(
-        targets=test_targets,
-        candidates=dict(candidates_df.iter_rows()),
-        catalog_size=VOCAB_SIZE,
-        topk=TOPK
-    )
-
-    if writer is not None:
-        for name, value in result.items():
-            writer.log_metric(f"valid/{name}", value=value)
-
-    return result
+        return evaluate(
+            targets=targets,
+            candidates=candidates_map,
+            catalog_size=self.vocab_size,
+            topk=self.topk
+        )

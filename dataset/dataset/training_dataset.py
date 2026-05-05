@@ -22,7 +22,7 @@ class TrainingDataset:
             df: pl.DataFrame,
             batch_size: int,
             seq_len: int,
-            device: str = "cuda",
+            device: str | int = "cuda",
             chunk_rows: int = 64_000,
             shuffle: bool = True,
             seed: int | None = 42,
@@ -43,6 +43,8 @@ class TrainingDataset:
         self.uniform_negative_items = uniform_negative_items
         self.in_batch_negative_items = in_batch_negative_items
         self.min_freq = 1e-12
+        self.epoch = 0
+        self.ddp = False
 
         self.batch_num_tokens = batch_size * seq_len + 1
         self.total_num_tokens = int(self.df.get_column("token_id").list.len().sum())
@@ -68,57 +70,81 @@ class TrainingDataset:
         valid_sampled_mask = (sampled_token_ids >= 0) & (sampled_token_ids < self.vocab_size)
         sampled_q[valid_sampled_mask] = q[sampled_token_ids[valid_sampled_mask]]
         return torch.clamp(sampled_q, min=self.min_freq)
+    
+    def ddp_setup(self, rank: int, world_size: int):
+        self.rank = rank
+        self.world_size = world_size
+        self.ddp = True
 
     def __iter__(self):
         df = self.df
 
         if self.shuffle:
-            df = df.sample(fraction=1, shuffle=True, seed=self.seed)
+            seed = self.seed + self.epoch if self.seed is not None else None
+            df = df.sample(fraction=1, shuffle=True, seed=seed)
 
         buf = np.ndarray((0,), dtype=np.int64)
+        batch_counter = 0
+
+        usable_batches = self.total_num_tokens // self.batch_num_tokens
+
+        if self.ddp:
+            usable_batches -= usable_batches % self.world_size
+        
         for i in range(0, df.height // self.chunk_rows + 1):
             chunk = df.slice(i * self.chunk_rows,
                              min(df.height - i * self.chunk_rows, self.chunk_rows))
             tokens = chunk.explode('token_id').get_column('token_id').cast(int).to_numpy()
             buf = np.concat((buf, tokens))
 
-            while len(buf) >= self.batch_num_tokens + 1:
-                if torch.cpu.is_available():
-                    t_cpu = torch.as_tensor(buf[:self.batch_num_tokens], device='cpu')
-                else:
-                    t_cpu = torch.as_tensor(buf[:self.batch_num_tokens], device='mps')
+            if batch_counter >= usable_batches:
+                break
 
-                if self.pin_memory:
-                    t_cpu = t_cpu.pin_memory()
+            while len(buf) >= self.batch_num_tokens:
+                if not self.ddp or batch_counter % self.world_size == self.rank:
+                    if torch.cpu.is_available():
+                        t_cpu = torch.as_tensor(buf[:self.batch_num_tokens], device='cpu')
+                    else:
+                        t_cpu = torch.as_tensor(buf[:self.batch_num_tokens], device='mps')
 
-                t = t_cpu.to(self.device)
-                inputs = t[:-1].view((self.batch_size, self.seq_len))
-                targets = t[1:].view((self.batch_size, self.seq_len))
-                uniform_negatives = torch.randint(1, self.vocab_size, (self.uniform_negative_items,),
-                                                  device=self.device)
+                    if self.pin_memory:
+                        t_cpu = t_cpu.pin_memory()
 
-                ndx = torch.randint(0, self.batch_num_tokens - 1, (self.in_batch_negative_items,), device=self.device)
-                in_batch_negatives = t.flatten()[ndx]
-                in_batch_mask = in_batch_negatives != BOS
+                    t = t_cpu.to(self.device)
+                    inputs = t[:-1].view((self.batch_size, self.seq_len))
+                    targets = t[1:].view((self.batch_size, self.seq_len))
+                    uniform_negatives = torch.randint(1, self.vocab_size, (self.uniform_negative_items,),
+                                                      device=self.device)
 
-                negatives = torch.concat([uniform_negatives, in_batch_negatives[in_batch_mask]])
+                    ndx = torch.randint(0, self.batch_num_tokens - 1, (self.in_batch_negative_items,), device=self.device)
+                    in_batch_negatives = t.flatten()[ndx]
+                    in_batch_mask = in_batch_negatives != BOS
 
-                positive_q = (
-                    torch.full_like(targets, self.uniform_prob, dtype=torch.float32)
-                    + self.in_batch_negative_items
-                    * self._in_batch_negative_q(t, targets.flatten()).view_as(targets)
-                )
+                    negatives = torch.concat([uniform_negatives, in_batch_negatives[in_batch_mask]])
 
-                negative_q = (
-                    torch.full((negatives.numel(),), self.uniform_prob, device=self.device, dtype=torch.float32)
-                    + self.in_batch_negative_items
-                    * self._in_batch_negative_q(t, negatives)
-                )
+                    positive_q = (
+                        torch.full_like(targets, self.uniform_prob, dtype=torch.float32)
+                        + self.in_batch_negative_items
+                        * self._in_batch_negative_q(t, targets.flatten()).view_as(targets)
+                    )
 
-                yield TrainingBatch(inputs=inputs,
-                                    targets=targets,
-                                    negatives=negatives,
-                                    size=inputs.numel(),
-                                    negative_log_q=negative_q.log(),
-                                    positive_log_q=positive_q.log())
+                    negative_q = (
+                        torch.full((negatives.numel(),), self.uniform_prob, device=self.device, dtype=torch.float32)
+                        + self.in_batch_negative_items
+                        * self._in_batch_negative_q(t, negatives)
+                    )
+
+                    yield TrainingBatch(inputs=inputs,
+                                        targets=targets,
+                                        negatives=negatives,
+                                        size=inputs.numel(),
+                                        negative_log_q=negative_q.log(),
+                                        positive_log_q=positive_q.log())
+                
+                batch_counter += 1
                 buf = buf[self.batch_num_tokens:]
+
+                if batch_counter >= usable_batches:
+                    break
+        
+        self.epoch += 1
