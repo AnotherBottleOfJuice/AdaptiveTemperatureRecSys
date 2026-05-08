@@ -2,7 +2,7 @@ import torch
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 from torch import nn
-from dataset import TrainingBatch
+from yambda_dataset import TrainingBatch
 
 if TYPE_CHECKING:
     from .graph import Graph

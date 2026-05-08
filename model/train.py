@@ -7,7 +7,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 import os
 
-from dataset import (TrainingDataset, TestDataset, get_train_histories,
+from yambda_dataset import (TrainingDataset, TestDataset, get_train_histories,
                      get_train_events, get_general_data, get_item_to_token,
                      get_test_histories, get_item_to_freq)
 from model import Graph, tau
