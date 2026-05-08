@@ -1,5 +1,8 @@
 import os
 import numpy as np
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Пути к данным (ожидается, что они лежат рядом с ноутбуком)
 DATA_DIR = "."
@@ -22,7 +25,7 @@ BOS = 0
 # Для воспроизводимости
 np.random.seed(42)
 
-#API
+# API
 COMET_API_KEY = os.getenv("COMET_API_KEY", "")
 
 __all__ = [
