@@ -143,7 +143,6 @@ class Trainer:
             
             if self.writer is not None:
                 epoch_iter.set_postfix({"train_loss": f"{train_loss:.4f}"})
-                print(f"[Epoch {epoch + 1}/{self.num_epochs}] Train Loss: {train_loss:.4f}")
 
             if self.ddp:
                 loss_t = torch.tensor(train_loss, device=self.graph.device)
@@ -325,14 +324,21 @@ def run_training_on_device(rank : int, world_size : int, config : ExperimentConf
     )
 
     trainer.ddp_setup(rank, world_size)
-    if rank == 0:
-        print(f"Starting training for {config.training.num_epochs} epochs...")
     metrics = trainer.run()
 
     destroy_process_group()
 
     if rank == 0:
-        print("Name:",graph.tau.experiment_name(), "Final metrics:", metrics)
+        print(
+            """
+            =======================================================
+            |               Training finished                     |
+            =======================================================
+            """
+        )
+
+        print("Experiment name:",graph.tau.experiment_name())
+        print("Final metrics:", metrics)
 
 def run_ddp_training(config : ExperimentConfig, world_size=None):
     if world_size is None:
