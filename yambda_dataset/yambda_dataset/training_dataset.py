@@ -3,7 +3,7 @@ from dataclasses import dataclass
 import numpy as np
 import polars as pl
 import torch
-from yambda_dataset.config import VOCAB_SIZE, UNIFORM_NEGATIVES_NUM, IN_BATCH_NEGATIVES_NUM, BOS
+from ..config import VOCAB_SIZE, UNIFORM_NEGATIVES_NUM, IN_BATCH_NEGATIVES_NUM, BOS
 
 
 @dataclass

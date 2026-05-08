@@ -1,6 +1,6 @@
 import polars as pl
 
-from yambda_dataset.config import MAX_TRAIN_EVENTS_PER_USER, BOS
+from ..config import MAX_TRAIN_EVENTS_PER_USER, BOS
 
 
 def get_train_events(train: pl.DataFrame, item_to_token_id: pl.DataFrame,

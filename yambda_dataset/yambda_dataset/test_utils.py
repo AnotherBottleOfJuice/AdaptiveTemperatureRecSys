@@ -1,6 +1,6 @@
 import polars as pl
 
-from yambda_dataset.config import MAX_LEN, BOS
+from ..config import MAX_LEN, BOS
 
 
 def get_test_users(test: pl.DataFrame) -> pl.DataFrame:

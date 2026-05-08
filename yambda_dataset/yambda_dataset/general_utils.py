@@ -1,8 +1,8 @@
 import numpy as np
 import polars as pl
 
-from yambda_dataset.config import (PATH_EMBEDDINGS, PATH_ARTISTS, PATH_INTERACTIONS,
-                    CORE_MIN_INTERACTIONS_PER_ITEM, TEST_INTERVAL_SECONDS)
+from ..config import (PATH_EMBEDDINGS, PATH_ARTISTS, PATH_INTERACTIONS,
+                      CORE_MIN_INTERACTIONS_PER_ITEM, TEST_INTERVAL_SECONDS)
 
 
 def get_general_data(path_interactions: str = PATH_INTERACTIONS,
