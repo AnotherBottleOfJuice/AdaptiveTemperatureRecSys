@@ -4,7 +4,7 @@ from torch import nn
 import torch.nn.functional as F
 from comet_ml import Experiment
 
-from config import LOG_Q_CORRECTION
+from ..config import LOG_Q_CORRECTION
 from yambda_dataset import TrainingBatch
 from .gpt import GPT
 from .tau import Tau
