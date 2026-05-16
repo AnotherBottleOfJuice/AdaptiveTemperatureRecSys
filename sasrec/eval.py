@@ -3,21 +3,21 @@ import torch.nn.functional as F
 import torch
 from typing import Dict, List
 
-from model import Graph
-from metrics_utils import evaluate
-from config import TOPK, VOCAB_SIZE
+from .model import Graph
+from .metrics_utils import evaluate
 
 
 class Evaluator:
-    def __init__(self,
-                test_dataloader,
-                test_histories,
-                test_targets, 
-                item_to_token, 
-                vocab_size=VOCAB_SIZE,
-                device="cuda",
-                topk=TOPK
-            ):
+    def __init__(
+        self,
+        test_dataloader,
+        test_histories,
+        test_targets,
+        item_to_token,
+        vocab_size,
+        device,
+        topk,
+    ):
         self.test_dataloader = test_dataloader
         self.test_histories = test_histories
         self.test_targets = test_targets
@@ -34,8 +34,7 @@ class Evaluator:
             with torch.autocast(device_type="cuda", dtype=torch.float):
                 hidden_states = graph.gpt(batch.token_ids)
                 last_hidden_state = hidden_states[
-                    torch.arange(len(batch.lengths)),
-                    batch.lengths - 1
+                    torch.arange(len(batch.lengths)), batch.lengths - 1
                 ]
 
                 weights = graph.head.weight
@@ -48,14 +47,14 @@ class Evaluator:
 
             logits[:, 0] = -torch.inf
 
-            _, indices = torch.topk(logits, k=TOPK)
+            _, indices = torch.topk(logits, k=self.topk)
             all_candidates.append(indices.cpu())
-        
+
         return all_candidates
-    
+
     def _prepare_candidates(self, candidates: List[torch.Tensor]) -> pl.DataFrame:
         return (
-            pl.DataFrame({"uid": self.test_histories['uid'], "token_id": candidates})
+            pl.DataFrame({"uid": self.test_histories["uid"], "token_id": candidates})
             .explode("token_id")
             .join(self.item_to_token, on="token_id", how="left")
             .group_by("uid", maintain_order=True)
@@ -67,7 +66,10 @@ class Evaluator:
         candidates = torch.concat(self._generate_candidates(graph), dim=0)
         candidates_df = self._prepare_candidates(candidates)
 
-        targets = {uid: torch.as_tensor(targets, dtype=torch.long) for uid, targets in self.test_targets.items()}
+        targets = {
+            uid: torch.as_tensor(targets, dtype=torch.long)
+            for uid, targets in self.test_targets.items()
+        }
         candidates_map = {
             uid: torch.as_tensor(item_ids, dtype=torch.long)
             for uid, item_ids in candidates_df.iter_rows()
@@ -77,5 +79,5 @@ class Evaluator:
             targets=targets,
             candidates=candidates_map,
             catalog_size=self.vocab_size,
-            topk=self.topk
+            topk=self.topk,
         )

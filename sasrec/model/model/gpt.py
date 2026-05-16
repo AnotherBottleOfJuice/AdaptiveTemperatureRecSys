@@ -6,13 +6,13 @@ from .block import Block
 
 class GPT(nn.Module):
     def __init__(
-            self,
-            vocab_size: int,
-            max_seq_len: int,
-            n_layers: int,
-            d_model: int,
-            n_heads: int,
-            dropout: float = 0.0,
+        self,
+        vocab_size: int,
+        max_seq_len: int,
+        n_layers: int,
+        d_model: int,
+        n_heads: int,
+        dropout: float,
     ):
         super().__init__()
 
