@@ -226,12 +226,6 @@ class Trainer:
             if epoch % self.eval_every == 0 and self.eval_every != -1:
                 metrics = self._get_metrics(graph)
                 if self.writer is not None and self.evaluator is not None:
-                    metrics_str = ", ".join(
-                        [f"{k}: {_as_float(v):.4f}" for k, v in metrics.items()]
-                    )
-                    tqdm.tqdm.write(
-                        f"\n[Epoch {epoch}] Train Loss: {train_loss:.4f} | Validation: {metrics_str}"
-                    )
                     for k, v in metrics.items():
                         self.writer.log_metric(
                             f"valid/{k}", value=_as_float(v), step=graph.tokens_passed
