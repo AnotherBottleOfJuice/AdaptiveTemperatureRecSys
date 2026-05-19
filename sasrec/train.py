@@ -302,6 +302,7 @@ class ExperimentConfig:
         eval_every: int
         logging: bool
         comet_api_key: str
+        console_logging : bool = True
         seed: int | None = None
 
     @dataclass
@@ -396,7 +397,9 @@ def prepare_data(config: ExperimentConfig):
     return train_dataloader, test_dataset, test_histories, test_targets, item_to_token
 
 
-def run_training_on_device(rank: int, world_size: int, config: ExperimentConfig):
+def run_training_on_device(
+    rank: int, world_size: int, config: ExperimentConfig, return_queue: mp.Queue = None
+):
     _ddp_setup(rank, world_size)
     torch.cuda.set_device(rank)
 
@@ -441,12 +444,16 @@ def run_training_on_device(rank: int, world_size: int, config: ExperimentConfig)
     destroy_process_group()
 
     if rank == 0:
-        print("--------------------------------")
-        print("Experiment name:", graph.tau.experiment_name())
-        for k, v in metrics.items():
-            print(f"{k}: {v:.4f}")
-        print("--------------------------------")
-        
+        if config.training.console_logging:
+            print("--------------------------------")
+            print("Experiment name:", graph.tau.experiment_name())
+            for k, v in metrics.items():
+                print(f"{k}: {v:.4f}")
+            print("--------------------------------")
+            
+        if return_queue is not None:
+            return_queue.put(metrics)
+
 
 
 def run_ddp_training(config: ExperimentConfig, world_size: int):
@@ -454,6 +461,14 @@ def run_ddp_training(config: ExperimentConfig, world_size: int):
         "CUDA is unavailable. DDP training requires at least one GPU."
     )
 
+    ctx = mp.get_context("spawn")
+    return_queue = ctx.Queue()
+
     mp.spawn(
-        run_training_on_device, args=(world_size, config), nprocs=world_size, join=True
+        run_training_on_device,
+        args=(world_size, config, return_queue),
+        nprocs=world_size,
+        join=True,
     )
+
+    return return_queue.get()
