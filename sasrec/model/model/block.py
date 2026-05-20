@@ -6,7 +6,7 @@ from .mlp import MLP
 
 
 class Block(nn.Module):
-    def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):
+    def __init__(self, d_model: int, n_heads: int, dropout: float):
         super().__init__()
 
         self.ln1 = torch.nn.LayerNorm(d_model)
