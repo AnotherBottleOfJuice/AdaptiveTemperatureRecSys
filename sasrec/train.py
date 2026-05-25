@@ -2,8 +2,8 @@ import tqdm
 import torch
 import random
 import numpy as np
-import mlflow
 from dataclasses import dataclass, field, asdict
+from comet_ml import Experiment
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
@@ -42,28 +42,6 @@ def _as_float(value):
         return float(value.detach().cpu())
     return float(value)
 
-def _as_step(value) -> int:
-    if torch.is_tensor(value):
-        return int(value.detach().cpu().item())
-    return int(value)
-
-
-class _MlflowWriter:
-    """Thin wrapper over mlflow's active-run API matching the call sites in Trainer."""
-
-    def set_name(self, name: str) -> None:
-        mlflow.set_tag("mlflow.runName", name)
-
-    def log_parameters(self, params: dict) -> None:
-        safe = {k: str(v) for k, v in params.items() if v is not None}
-        mlflow.log_params(safe)
-
-    def log_metric(self, key: str, value: float, step=None) -> None:
-        mlflow.log_metric(key, value, step=_as_step(step) if step is not None else None)
-
-    def end(self) -> None:
-        mlflow.end_run()
-
 
 class Trainer:
     def __init__(
@@ -77,7 +55,7 @@ class Trainer:
         eval_every: int,
         evaluator: Evaluator | None,
         logging: bool,
-        log_dir: str,
+        comet_api_key: str,
         config: "ExperimentConfig | None" = None,
     ):
         self.graph = graph
@@ -89,17 +67,17 @@ class Trainer:
         self.eval_every = eval_every
         self.evaluator = evaluator
         self.logging = logging
-        self.log_dir = log_dir
+        self.comet_api_key = comet_api_key
         self.config = config
         self.ddp = False
         self.writer = None
 
     def _init_writer(self):
-        mlflow.set_tracking_uri(f"file://{os.path.abspath(self.log_dir)}")
-        mlflow.set_experiment("AdaptiveTemperature")
-        mlflow.start_run()
-        self.writer = _MlflowWriter()
-
+        self.writer = Experiment(
+            api_key=self.comet_api_key,
+            project_name="AdaptiveTemperature",
+            workspace="maksim-bessolitsyn",
+        )
         if self.ddp:
             self.writer.set_name(
                 self.graph.module.tau.experiment_name() + f" Epochs:{self.num_epochs}"
@@ -108,15 +86,16 @@ class Trainer:
             self.writer.set_name(
                 self.graph.tau.experiment_name() + f" Epochs:{self.num_epochs}"
             )
-
+        
         self._log_training_params()
 
     def _log_training_params(self):
+        """Log training parameters to Comet."""
         if self.writer is None or self.config is None:
             return
-
+        
         params_dict = asdict(self.config)
-
+        
         flat_params = {}
         for section_name, section_config in params_dict.items():
             if isinstance(section_config, dict):
@@ -124,10 +103,10 @@ class Trainer:
                     flat_params[f"{section_name}_{param_name}"] = param_value
             else:
                 flat_params[section_name] = section_config
-
+        
         if self.optimizer is not None:
             flat_params["learning_rate"] = self.optimizer.param_groups[0]["lr"]
-
+        
         self.writer.log_parameters(flat_params)
 
     def ddp_setup(self, rank, world_size):
@@ -258,9 +237,6 @@ class Trainer:
             with torch.inference_mode():
                 metrics = self._get_metrics(graph)
 
-        if self.writer is not None:
-            self.writer.end()
-
         return metrics
 
 
@@ -325,8 +301,8 @@ class ExperimentConfig:
         grad_clip: float
         eval_every: int
         logging: bool
-        log_dir: str
-        console_logging: bool = True
+        comet_api_key: str
+        console_logging : bool = True
         seed: int | None = None
 
     @dataclass
@@ -458,7 +434,7 @@ def run_training_on_device(
         eval_every=config.training.eval_every,
         evaluator=evaluator,
         logging=config.training.logging,
-        log_dir=config.training.log_dir,
+        comet_api_key=config.training.comet_api_key,
         config=config,
     )
 
@@ -474,7 +450,7 @@ def run_training_on_device(
             for k, v in metrics.items():
                 print(f"{k}: {v:.4f}")
             print("--------------------------------")
-
+            
         if return_queue is not None:
             return_queue.put(metrics)
 

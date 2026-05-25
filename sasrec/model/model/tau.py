@@ -1,20 +1,11 @@
 import torch
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from typing import TYPE_CHECKING
-from torch import nn, Tensor
+from torch import nn
 from yambdadataset import TrainingBatch
 
 if TYPE_CHECKING:
     from .graph import Graph
-
-
-@dataclass
-class TauContext:
-    net: "Graph"
-    pos_logits: Tensor
-    neg_logits: Tensor
-    batch: TrainingBatch
 
 
 class Tau(nn.Module, ABC):
@@ -34,7 +25,15 @@ class Tau(nn.Module, ABC):
         self.num_tokens_per_epoch = num_tokens_per_epoch
 
     @abstractmethod
-    def __call__(self, ctx: TauContext) -> Tensor:
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
         pass
 
     @abstractmethod
@@ -43,9 +42,17 @@ class Tau(nn.Module, ABC):
 
 
 class ConstantTau(Tau):
-    def __call__(self, ctx: TauContext) -> Tensor:
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
         return torch.tensor(
-            self.initial_tau, device=ctx.pos_logits.device, dtype=torch.float32
+            self.initial_tau, device=pos_logits.device, dtype=torch.float32
         )
 
     def experiment_name(self) -> str:
@@ -71,19 +78,35 @@ class ParameterTau(Tau):
         self.initial_tau = float(initial_tau)
         self.tau = nn.Parameter(torch.tensor(0.0, dtype=torch.float32))
 
-    def __call__(self, ctx: TauContext) -> Tensor:
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
         tau_normalized = torch.sigmoid(self.tau)
         tau = self.tau_min + tau_normalized * (self.tau_max - self.tau_min)
-        return tau.to(ctx.pos_logits.device)
+        return tau.to(pos_logits.device)
 
     def experiment_name(self) -> str:
         return f"Param[init={self.initial_tau:.5g}]"
 
 
 class LinearTau(Tau):
-    def __call__(self, ctx: TauContext) -> Tensor:
-        tokens_passed = ctx.net.tokens_passed.to(
-            device=ctx.pos_logits.device, dtype=torch.float32
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        tokens_passed = net.tokens_passed.to(
+            device=pos_logits.device, dtype=torch.float32
         )
         phase = tokens_passed / (
             float(self.num_tokens_per_epoch) * float(self.num_epochs)
@@ -99,9 +122,17 @@ class LinearTau(Tau):
 
 
 class CosTau(Tau):
-    def __call__(self, ctx: TauContext) -> Tensor:
-        tokens_passed = ctx.net.tokens_passed.to(
-            device=ctx.pos_logits.device, dtype=torch.float32
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        tokens_passed = net.tokens_passed.to(
+            device=pos_logits.device, dtype=torch.float32
         )
         epoch = tokens_passed / float(self.num_tokens_per_epoch)
         phase = epoch / float(self.num_epochs)
@@ -118,8 +149,16 @@ class CosTau(Tau):
 
 
 class CosPerUserTau(Tau):
-    def __call__(self, ctx: TauContext) -> Tensor:
-        logits = torch.concat([ctx.pos_logits.unsqueeze(2), ctx.neg_logits], dim=-1)
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        logits = torch.concat([pos_logits.unsqueeze(2), neg_logits], dim=-1)
         tau = (1 + torch.cos(torch.pi * (logits.detach() + 1))) * (
             self.tau_max - self.tau_min
         ) / 2 + self.tau_min
@@ -154,10 +193,16 @@ class ShifetedCosPerUserTau(Tau):
         self.shift = float(shift)
         self.scale = float(scale)
 
-    def __call__(self, ctx: TauContext) -> Tensor:
-        logits = torch.concat(
-            [ctx.pos_logits.unsqueeze(2), ctx.neg_logits], dim=-1
-        ).detach()
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        logits = torch.concat([pos_logits.unsqueeze(2), neg_logits], dim=-1).detach()
         shifted_logits = self.shift + logits
         bounded_logits = (
             shifted_logits.clamp_max(0.0)
@@ -177,8 +222,7 @@ class ShifetedCosPerUserTau(Tau):
             f"shift={float(self.shift):.5g},"
             f"scale={float(self.scale):.5g}]"
         )
-
-
+    
 class ExpandedShifetedCosPerUserTau(Tau):
     def __init__(
         self,
@@ -204,15 +248,21 @@ class ExpandedShifetedCosPerUserTau(Tau):
         self.max_shift = float(max_shift)
         self.scale = float(scale)
 
-    def __call__(self, ctx: TauContext) -> Tensor:
-        phase = ctx.net.tokens_passed / (
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:
+        phase = net.tokens_passed / (
             float(self.num_tokens_per_epoch) * float(self.num_epochs)
         )
         shift = self.min_shift + phase * (self.max_shift - self.min_shift)
 
-        logits = torch.concat(
-            [ctx.pos_logits.unsqueeze(2), ctx.neg_logits], dim=-1
-        ).detach()
+        logits = torch.concat([pos_logits.unsqueeze(2), neg_logits], dim=-1).detach()
         shifted_logits = shift + logits
         bounded_logits = shifted_logits.clamp_min(0.0)
         delta_tau = self.tau_max - self.tau_min
@@ -220,7 +270,7 @@ class ExpandedShifetedCosPerUserTau(Tau):
             1 + torch.cos(bounded_logits * torch.pi / self.scale)
         )
         return tau
-
+    
     def experiment_name(self) -> str:
         return (
             f"ExpandedShifetedCosPerUser[min={float(self.tau_min):.5g},"
@@ -229,7 +279,6 @@ class ExpandedShifetedCosPerUserTau(Tau):
             f"max_shift={float(self.max_shift):.5g},"
             f"scale={float(self.scale):.5g}]"
         )
-
 
 class MACLossTau(Tau):
     def __init__(
@@ -252,11 +301,20 @@ class MACLossTau(Tau):
         self.base_threshold = float(base_threshold)
         self.linear_coeff = float(linear_coeff)
 
-    def __call__(self, ctx: TauContext) -> Tensor:
+    def __call__(
+        self,
+        net: "Graph",
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        batch: TrainingBatch,
+        *args,
+        **kwargs,
+    ) -> torch.Tensor:        
         tau = (
-            (ctx.pos_logits.mean().detach() - self.base_threshold) * self.linear_coeff
+            (pos_logits.mean().detach() - self.base_threshold) * self.linear_coeff 
             + self.initial_tau
         ).clamp(self.tau_min, self.tau_max)
+
         return tau
 
     def experiment_name(self) -> str:
@@ -265,9 +323,7 @@ class MACLossTau(Tau):
             f"max={float(self.tau_max):.5g}]"
         )
 
-
 __all__ = [
-    "TauContext",
     "Tau",
     "ConstantTau",
     "ParameterTau",
@@ -275,5 +331,5 @@ __all__ = [
     "CosTau",
     "CosPerUserTau",
     "ShifetedCosPerUserTau",
-    "ExpandedShifetedCosPerUserTau",
+    "ExpandedShifetedCosPerUserTau"
 ]
