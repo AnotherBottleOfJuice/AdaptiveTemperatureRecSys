@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "sasrec"
+version = "0.1.0"
+dependencies = [
+    "model",
+    "yambdadataset"
+]
+
+[tool.setuptools]
+packages = ["sasrec", "model"] 
+package-dir = {"sasrec" = ".", "model" = "model"}
+
+[tool.uv.sources]
+sasrec = { workspace = true }
