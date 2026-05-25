@@ -1,9 +1,7 @@
 from .model.graph import Graph
-from .model.gpt import GPT
-from .model.mlp import MLP
-from .model.block import Block
-from .model.causal_self_attension import CausalSelfAttention
+from .model.transformer import GPT, MLP, Block, CausalSelfAttention
 from .model import tau
+from .model.tau import TauContext
 
 __all__ = [
     "Graph",
@@ -12,4 +10,5 @@ __all__ = [
     "CausalSelfAttention",
     "GPT",
     "tau",
+    "TauContext",
 ]
