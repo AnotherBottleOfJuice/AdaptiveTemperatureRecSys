@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "adaptivetemperaturerecsys"
 version = "0.1.0"
@@ -5,17 +9,33 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "matplotlib>=3.10.8",
-    "dataset",
+    "python-dotenv>=1.1.1",
+    "comet_ml>=3.0.0",
     "datasets>=4.5.0",
     "pandas>=3.0.0",
     "polars>=1.38.1",
     "torch>=2.10.0",
+    "ipykernel>=7.1.0",
+    "jupyter>=1.1.1",
+    "pandas-stubs~=3.0.0",
+    "sasrec",
+    "yambdadataset",
+    "kaggle>=2.1.2",
 ]
 
 [tool.uv.workspace]
 members = [
-    "dataset",
+    "yambdadataset",
+    "sasrec",
+    "sasrec/model",
 ]
 
 [tool.uv.sources]
-dataset = { workspace = true }
+yambdadataset = { workspace = true }
+sasrec = { workspace = true }
+model = { workspace = true }
+
+[tool.setuptools]
+packages = []
+py-modules = []
+

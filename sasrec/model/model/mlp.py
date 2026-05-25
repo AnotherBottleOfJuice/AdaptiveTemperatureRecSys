@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 
 class MLP(nn.Module):
-    def __init__(self, d_model: int, dropout: float = 0.0):
+    def __init__(self, d_model: int, dropout: float):
         super().__init__()
 
         self.fc1 = torch.nn.Linear(d_model, 4 * d_model)
@@ -19,4 +19,3 @@ class MLP(nn.Module):
         x = self.dropout(x)
         x = self.fc2(x)
         return x
-
