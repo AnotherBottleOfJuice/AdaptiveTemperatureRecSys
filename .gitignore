@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# macOS system files
+.DS_Store
+**/.DS_Store
+
 # C extensions
 *.so
 
@@ -207,3 +211,11 @@ marimo/_lsp/
 __marimo__/
 
 datasets/
+
+# Dataset files
+artists.parquet
+embeddings.parquet
+interactions.parquet
+dataset.zip
+dataset/dataset.zip
+model/model.zip
