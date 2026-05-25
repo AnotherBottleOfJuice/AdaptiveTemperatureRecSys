@@ -4,8 +4,8 @@ from torch import nn
 import torch.nn.functional as F
 
 from yambdadataset import TrainingBatch
-from .gpt import GPT
-from .tau import Tau
+from .transformer import GPT
+from .tau import Tau, TauContext
 
 
 class Graph(nn.Module):
@@ -59,7 +59,7 @@ class Graph(nn.Module):
         
         with torch.autocast(device_type="cuda", dtype=torch.float32):
 
-            tau = self.tau(self, pos_logits, neg_logits, batch)
+            tau = self.tau(TauContext(self, pos_logits, neg_logits, batch))
             tau = tau.to(device=logits.device, dtype=torch.float32)
             logits = logits.to(dtype=torch.float32)
 
