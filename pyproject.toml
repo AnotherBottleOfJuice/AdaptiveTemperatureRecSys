@@ -21,18 +21,6 @@ dependencies = [
     "kaggle>=2.1.2",
 ]
 
-[tool.uv.workspace]
-members = [
-    "yambdadataset",
-    "sasrec",
-    "sasrec/model",
-]
-
-[tool.uv.sources]
-yambdadataset = { workspace = true }
-sasrec = { workspace = true }
-model = { workspace = true }
-
 [tool.setuptools]
 packages = []
 py-modules = []
