@@ -131,7 +131,7 @@ class CosPerUserTau(Tau):
         )
 
 
-class ShifetedCosPerUserTau(Tau):
+class ShiftedCosPerUserTau(Tau):
     def __init__(
         self,
         initial_tau: float,
@@ -172,14 +172,14 @@ class ShifetedCosPerUserTau(Tau):
 
     def experiment_name(self) -> str:
         return (
-            f"ShifetedCosPerUser[min={float(self.tau_min):.5g},"
+            f"ShiftedCosPerUser[min={float(self.tau_min):.5g},"
             f"max={float(self.tau_max):.5g},"
             f"shift={float(self.shift):.5g},"
             f"scale={float(self.scale):.5g}]"
         )
 
 
-class ExpandedShifetedCosPerUserTau(Tau):
+class ExpandedShiftedCosPerUserTau(Tau):
     def __init__(
         self,
         initial_tau: float,
@@ -223,7 +223,7 @@ class ExpandedShifetedCosPerUserTau(Tau):
 
     def experiment_name(self) -> str:
         return (
-            f"ExpandedShifetedCosPerUser[min={float(self.tau_min):.5g},"
+            f"ExpandedShiftedCosPerUser[min={float(self.tau_min):.5g},"
             f"max={float(self.tau_max):.5g},"
             f"min_shift={float(self.min_shift):.5g},"
             f"max_shift={float(self.max_shift):.5g},"
@@ -274,6 +274,6 @@ __all__ = [
     "LinearTau",
     "CosTau",
     "CosPerUserTau",
-    "ShifetedCosPerUserTau",
-    "ExpandedShifetedCosPerUserTau",
+    "ShiftedCosPerUserTau",
+    "ExpandedShiftedCosPerUserTau",
 ]
