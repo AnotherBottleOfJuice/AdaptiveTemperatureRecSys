@@ -1,7 +1,5 @@
-# Sweep settings: cartesian product of all grid lists, each combo run rerun_count times.
-# Remove the sweep section (or set grid to {}) for a single run.
 sweep:
-  rerun_count: 2
+  seeds: [42, 123, 456]
   grid:
     optimizer.json_args.lr: [1.0e-3, 3.0e-3, 5.0e-3]
     tau.json_args.tau_min: [0.02, 0.03]

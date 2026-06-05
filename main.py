@@ -52,7 +52,8 @@ def _build_grouped_configs(raw: dict) -> tuple[list[list[ExperimentConfig]], lis
     Each group is a list of rerun_count ExperimentConfig objects sharing the same hyperparams.
     """
     sweep = raw.pop("sweep", {})
-    rerun_count = int(sweep.get("rerun_count", 1))
+    default_seed = raw.get("training", {}).get("seed")
+    seeds = sweep.get("seeds", [default_seed])
     grid = sweep.get("grid", {})
 
     keys = list(grid.keys())
@@ -63,28 +64,32 @@ def _build_grouped_configs(raw: dict) -> tuple[list[list[ExperimentConfig]], lis
         cfg = copy.deepcopy(raw)
         for key, val in zip(keys, combo):
             _set_nested(cfg, key, val)
-        groups.append([_build_experiment_config(copy.deepcopy(cfg)) for _ in range(rerun_count)])
+        seeded_configs = []
+        for seed in seeds:
+            seeded = copy.deepcopy(cfg)
+            seeded["training"]["seed"] = seed
+            seeded_configs.append(_build_experiment_config(seeded))
+        groups.append(seeded_configs)
         combo_vals_per_group.append(combo)
 
-    return groups, keys, combo_vals_per_group
+    return groups, keys, combo_vals_per_group, seeds
 
 
-def _run(groups, swept_keys, combo_vals_per_group, world_size):
+def _run(groups, swept_keys, combo_vals_per_group, seeds, world_size):
     n_combos = len(groups)
-    rerun_count = len(groups[0])
-    print(f"Sweep: {n_combos} combo(s) × {rerun_count} rerun(s) on {world_size} GPU(s)\n")
+    print(f"Sweep: {n_combos} combo(s) × {len(seeds)} seed(s) {seeds} on {world_size} GPU(s)\n")
 
     SEP = "--------------------------------"
 
     summary = []
     for configs, combo_vals in zip(groups, combo_vals_per_group):
         run_metrics = []
-        for rerun_idx, config in enumerate(configs, 1):
+        for seed, config in zip(seeds, configs):
             metrics = run_ddp_training(config, world_size=world_size)
             run_metrics.append(metrics)
             print(SEP)
             name = config.build_tau().experiment_name()
-            suffix = f"  (rerun {rerun_idx}/{rerun_count})" if rerun_count > 1 else ""
+            suffix = f"  (seed={seed})" if len(seeds) > 1 else ""
             print(f"Experiment name: {name}{suffix}")
             for k, v in metrics.items():
                 print(f"{k}: {v:.4f}")
@@ -92,7 +97,7 @@ def _run(groups, swept_keys, combo_vals_per_group, world_size):
 
         summary.append((configs[0], combo_vals, run_metrics))
 
-    if n_combos > 1 or rerun_count > 1:
+    if n_combos > 1 or len(seeds) > 1:
         print(f"\n{SEP}")
         print("Sweep summary (mean ± std across reruns)")
         print(SEP)
@@ -122,7 +127,7 @@ def main():
     with open(args.config) as f:
         raw = yaml.safe_load(f)
 
-    groups, swept_keys, combo_vals_per_group = _build_grouped_configs(raw)
+    groups, swept_keys, combo_vals_per_group, seeds = _build_grouped_configs(raw)
 
     world_size = args.gpus if args.gpus is not None else torch.cuda.device_count()
     if world_size == 0:
@@ -138,7 +143,7 @@ def main():
     with open(log_path, "w") as log_file:
         sys.stdout = _Tee(log_file)
         try:
-            _run(groups, swept_keys, combo_vals_per_group, world_size)
+            _run(groups, swept_keys, combo_vals_per_group, seeds, world_size)
         finally:
             sys.stdout = sys.__stdout__
 
