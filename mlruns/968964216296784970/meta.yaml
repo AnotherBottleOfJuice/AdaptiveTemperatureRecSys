@@ -1,8 +1,0 @@
-artifact_location: file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys/mlruns/968964216296784970
-creation_time: 1780758615917
-experiment_id: '968964216296784970'
-last_update_time: 1780758615917
-lifecycle_stage: active
-name: AdaptiveTemperature
-trace_location: null
-workspace: default
