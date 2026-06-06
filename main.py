@@ -32,7 +32,7 @@ def _set_nested(d: dict, dotted_key: str, value) -> None:
     d[keys[-1]] = value
 
 
-def _build_experiment_config(raw: dict) -> ExperimentConfig:
+def _build_experiment_config(raw: dict, config_name: str) -> ExperimentConfig:
     return ExperimentConfig(
         graph=ExperimentConfig.GraphConfig(**raw["graph"]),
         data=ExperimentConfig.DataConfig(**raw["data"]),
@@ -43,10 +43,11 @@ def _build_experiment_config(raw: dict) -> ExperimentConfig:
         scheduler=ExperimentConfig.SchedulerConfig(**raw["scheduler"]),
         training=ExperimentConfig.TrainingConfig(**raw["training"]),
         evaluator=ExperimentConfig.EvaluatorConfig(**raw["evaluator"]),
+        config_name=config_name,
     )
 
 
-def _build_grouped_configs(raw: dict) -> tuple[list[list[ExperimentConfig]], list[str], list[tuple]]:
+def _build_grouped_configs(raw: dict, config_name: str) -> tuple[list[list[ExperimentConfig]], list[str], list[tuple]]:
     """Return (groups, swept_keys, combo_vals_per_group).
 
     Each group is a list of rerun_count ExperimentConfig objects sharing the same hyperparams.
@@ -68,7 +69,7 @@ def _build_grouped_configs(raw: dict) -> tuple[list[list[ExperimentConfig]], lis
         for seed in seeds:
             seeded = copy.deepcopy(cfg)
             seeded["training"]["seed"] = seed
-            seeded_configs.append(_build_experiment_config(seeded))
+            seeded_configs.append(_build_experiment_config(seeded, config_name))
         groups.append(seeded_configs)
         combo_vals_per_group.append(combo)
 
@@ -123,11 +124,12 @@ def main():
         help="Number of GPUs to use (default: all available)",
     )
     args = parser.parse_args()
+    config_name = Path(args.config).stem
 
     with open(args.config) as f:
         raw = yaml.safe_load(f)
 
-    groups, swept_keys, combo_vals_per_group, seeds = _build_grouped_configs(raw)
+    groups, swept_keys, combo_vals_per_group, seeds = _build_grouped_configs(raw, config_name)
 
     world_size = args.gpus if args.gpus is not None else torch.cuda.device_count()
     if world_size == 0:
@@ -136,9 +138,8 @@ def main():
 
     results_dir = Path("results")
     results_dir.mkdir(exist_ok=True)
-    config_stem = Path(args.config).stem
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_path = results_dir / f"{config_stem}_{timestamp}.txt"
+    log_path = results_dir / f"{config_name}_{timestamp}.txt"
 
     with open(log_path, "w") as log_file:
         sys.stdout = _Tee(log_file)

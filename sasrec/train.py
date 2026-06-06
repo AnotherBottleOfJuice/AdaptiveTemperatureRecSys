@@ -95,8 +95,14 @@ class Trainer:
         self.writer = None
 
     def _init_writer(self):
-        mlflow.set_tracking_uri(f"file://{os.path.abspath(self.log_dir)}")
-        mlflow.set_experiment("AdaptiveTemperature")
+        db_path = os.path.join(os.path.abspath(self.log_dir), "mlflow.db")
+        mlflow.set_tracking_uri(f"sqlite:///{db_path}")
+        experiment_name = (
+            self.config.config_name
+            if self.config is not None and self.config.config_name
+            else "AdaptiveTemperature"
+        )
+        mlflow.set_experiment(experiment_name)
         mlflow.start_run()
         self.writer = _MlflowWriter()
 
@@ -342,6 +348,7 @@ class ExperimentConfig:
     scheduler: SchedulerConfig
     training: TrainingConfig
     evaluator: EvaluatorConfig
+    config_name: str | None = None
 
     def build_train_dataloader(self, train_histories) -> TrainingDataset:
         return TrainingDataset(
