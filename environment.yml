@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - defaults
 dependencies:
-  - python=3.13
+  - python=3.12
   - matplotlib
   - python-dotenv
   - mlflow
@@ -14,7 +14,7 @@ dependencies:
   - kaggle
   - pip
   - pip:
-      - torch>=2.2.0
+      - torch>=2.10.0
       - torchvision
       - -e ./yambdadataset
       - -e ./sasrec/model
