@@ -1,0 +1,68 @@
+sweep:
+  seeds: [42, 123]
+  grid:
+    optimizer.json_args.lr: [1.0e-3, 3.0e-3]
+
+graph:
+  n_layers: 4
+  d_model: 256
+  n_heads: 4
+  dropout: 0.0
+  log_q_correction: 1.0
+  is_cosine_similarity: true
+
+data:
+  vocab_size: 157162
+  max_seq_len: 100
+  bos: 0
+  path_interactions: data/interactions.parquet
+  path_embeddings: data/embeddings.parquet
+  path_artists: data/artists.parquet
+  core_min_interaction_per_user: 5
+  test_interval_seconds: 604800  # 7 days
+  max_train_events_per_user: 100
+
+tau:
+  class_name: CosTau
+  json_args:
+    initial_tau: null
+    tau_min: 0.03
+    tau_max: 0.07
+    num_epochs: 15
+    num_tokens_per_epoch: 500000
+
+training_dataset:
+  batch_size: 128
+  device: cuda
+  chunk_rows: 64000
+  shuffle: true
+  seed: 42
+  pin_memory: true
+  uniform_negative_items: 22000
+  in_batch_negative_items: 8000
+
+test_dataset:
+  batch_size: 32
+  device: cuda
+
+optimizer:
+  class_name: AdamW
+  json_args:
+    lr: 3.0e-3
+    weight_decay: 1.0e-5
+
+scheduler:
+  class_name: null
+  json_args: {}
+
+training:
+  num_epochs: 1
+  grad_clip: 1.0
+  eval_every: 1
+  logging: true
+  log_dir: mlruns
+  console_logging: true
+  seed: 42
+
+evaluator:
+  topk: 100
