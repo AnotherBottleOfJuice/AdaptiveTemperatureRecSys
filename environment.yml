@@ -13,6 +13,7 @@ dependencies:
   - jupyter
   - kaggle
   - pip
+  - gdown
   - pip:
       - torch>=2.1.0
       - torchvision

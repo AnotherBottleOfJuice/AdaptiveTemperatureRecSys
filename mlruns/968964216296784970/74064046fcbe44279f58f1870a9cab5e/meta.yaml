@@ -1,0 +1,14 @@
+artifact_uri: file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys/mlruns/968964216296784970/74064046fcbe44279f58f1870a9cab5e/artifacts
+end_time: 1780758796877
+entry_point_name: ''
+experiment_id: '968964216296784970'
+lifecycle_stage: active
+run_id: 74064046fcbe44279f58f1870a9cab5e
+run_name: Cos[min=0.03,max=0.07,epochs=15] Epochs:1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780758717242
+status: 3
+tags: []
+user_id: maanbessolitsyn
