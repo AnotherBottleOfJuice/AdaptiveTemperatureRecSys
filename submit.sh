@@ -9,6 +9,6 @@
 #SBATCH --mail-user=maanbessolitsyn@edu.hse.ru # Ваша почта
 #SBATCH --partition=test
 
-module load Python/Anaconda_v11.2021  # Загрузка модуля Anaconda
+module load Python  # Загрузка модуля Anaconda
 source activate adaptivetemperaturerecsys
-python main.py --config configs/test.yaml
+python main.py configs/test.yaml

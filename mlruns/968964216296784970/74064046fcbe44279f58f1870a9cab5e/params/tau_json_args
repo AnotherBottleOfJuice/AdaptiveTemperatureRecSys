@@ -1,0 +1,1 @@
+{'initial_tau': None, 'tau_min': 0.03, 'tau_max': 0.07, 'num_epochs': 15, 'num_tokens_per_epoch': 500000}
