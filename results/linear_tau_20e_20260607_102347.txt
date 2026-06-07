@@ -1,0 +1,33 @@
+Sweep: 1 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Cos[min=0.04,max=0.06,epochs=20]  (seed=42)
+hitrate: 0.3488
+recall: 0.1225
+ndcg: 0.0494
+coverage: 0.2447
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.04,max=0.06,epochs=20]  (seed=123)
+hitrate: 0.3530
+recall: 0.1242
+ndcg: 0.0505
+coverage: 0.2591
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.04,max=0.06,epochs=20]  (seed=456)
+hitrate: 0.3634
+recall: 0.1267
+ndcg: 0.0516
+coverage: 0.2895
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Cos[min=0.04,max=0.06,epochs=20]
+hitrate: 0.3551 ± 0.0075
+recall: 0.1245 ± 0.0021
+ndcg: 0.0505 ± 0.0011
+coverage: 0.2645 ± 0.0229
+--------------------------------

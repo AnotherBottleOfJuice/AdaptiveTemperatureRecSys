@@ -1,14 +1,13 @@
 #!/bin/bash
-#SBATCH --job-name=test_exp                # Название задачи
-#SBATCH --account=proj_1876                    # Идентификатор проекта
-#SBATCH --time=0:10:00                         # Максимальное время выполнения (1 час)
-#SBATCH --nodes=1                              # Требуемое кол-во узлов
-#SBATCH --cpus-per-task=1                      # Количество CPU на одну задачу
-#SBATCH --gpus=1                               # Требуемое кол-во GPU
-#SBATCH --mail-type=BEGIN,END,FAIL             # Уведомления при старте, завершении или сбое задачи
-#SBATCH --mail-user=maanbessolitsyn@edu.hse.ru # Ваша почта
-#SBATCH --partition=test
+#SBATCH --job-name=linear_tau_20e
+#SBATCH --account=proj_1876
+#SBATCH --time=2:00:00
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --gpus=2
+#SBATCH --mail-type=BEGIN,END,FAIL
+#SBATCH --mail-user=maanbessolitsyn@edu.hse.ru
 
-module load Python  # Загрузка модуля Anaconda
+module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/test.yaml
+python main.py configs/linear_tau_20e.yaml
