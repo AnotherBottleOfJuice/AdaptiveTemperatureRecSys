@@ -1,0 +1,33 @@
+Sweep: 1 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Linear[min=0.03,max=0.06,epochs=30]  (seed=42)
+hitrate: 0.3450
+recall: 0.1163
+ndcg: 0.0458
+coverage: 0.3190
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.03,max=0.06,epochs=30]  (seed=123)
+hitrate: 0.3475
+recall: 0.1171
+ndcg: 0.0465
+coverage: 0.3489
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.03,max=0.06,epochs=30]  (seed=456)
+hitrate: 0.3482
+recall: 0.1181
+ndcg: 0.0476
+coverage: 0.3422
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Linear[min=0.03,max=0.06,epochs=30]
+hitrate: 0.3469 ± 0.0017
+recall: 0.1172 ± 0.0009
+ndcg: 0.0466 ± 0.0009
+coverage: 0.3367 ± 0.0157
+--------------------------------
