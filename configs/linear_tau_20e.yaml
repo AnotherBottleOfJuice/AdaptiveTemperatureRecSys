@@ -21,13 +21,13 @@ data:
   max_train_events_per_user: 100
 
 tau:
-  class_name: CosTau
+  class_name: LinearTau
   json_args:
     initial_tau: null
     tau_min: 0.04
     tau_max: 0.06
     num_epochs: 20
-    num_tokens_per_epoch: 500000
+    num_tokens_per_epoch: 4019032
 
 training_dataset:
   batch_size: 128
