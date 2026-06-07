@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=linear_tau_20e
+#SBATCH --job-name=linear_tau_30e
 #SBATCH --account=proj_1876
-#SBATCH --time=2:00:00
+#SBATCH --time=4:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --gpus=2
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/linear_tau_20e.yaml
+python main.py configs/linear_tau_30e.yaml

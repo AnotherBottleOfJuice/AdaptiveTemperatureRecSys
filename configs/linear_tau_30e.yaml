@@ -24,9 +24,9 @@ tau:
   class_name: LinearTau
   json_args:
     initial_tau: null
-    tau_min: 0.04
+    tau_min: 0.03
     tau_max: 0.06
-    num_epochs: 20
+    num_epochs: 30
     num_tokens_per_epoch: 4019032
 
 training_dataset:
@@ -54,7 +54,7 @@ scheduler:
   json_args: {}
 
 training:
-  num_epochs: 20
+  num_epochs: 30
   grad_clip: 1.0
   eval_every: 1
   logging: true
