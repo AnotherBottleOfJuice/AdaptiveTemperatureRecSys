@@ -1,7 +1,7 @@
 sweep:
   seeds: [42, 123, 456]
   grid:
-    tau.json_args.initial_tau: [0.035, 0.040, 0.45]
+    tau.json_args.initial_tau: [0.045]
     
 
 graph:
