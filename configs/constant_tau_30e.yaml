@@ -38,7 +38,6 @@ training_dataset:
   chunk_rows: 64000
   shuffle: true
   seed: 42
-  pin_memory: true
   uniform_negative_items: 24000
   in_batch_negative_items: 6000
 
@@ -64,6 +63,8 @@ training:
   eval_every: 1
   logging: true
   log_dir: mlruns
+  num_workers: 4
+  pin_memory: true
   console_logging: true
   seed: 42
 

@@ -69,7 +69,7 @@ class Trainer:
     def __init__(
         self,
         graph: Graph,
-        train_dataloader,
+        train_dataset,
         optimizer,
         scheduler,
         num_epochs: int,
@@ -78,10 +78,12 @@ class Trainer:
         evaluator: Evaluator | None,
         logging: bool,
         log_dir: str,
+        num_workers: int,
+        pin_memory: bool,
         config: "ExperimentConfig | None" = None,
     ):
         self.graph = graph
-        self.train_dataloader = train_dataloader
+        self.train_dataset = train_dataset
         self.optimizer = optimizer
         self.scheduler = scheduler
         self.num_epochs = num_epochs
@@ -90,6 +92,8 @@ class Trainer:
         self.evaluator = evaluator
         self.logging = logging
         self.log_dir = log_dir
+        self.num_workers = num_workers
+        self.pin_memory = pin_memory
         self.config = config
         self.ddp = False
         self.writer = None
@@ -138,7 +142,7 @@ class Trainer:
 
     def ddp_setup(self, rank, world_size):
         self.graph = DDP(self.graph, device_ids=[rank], output_device=rank)
-        self.train_dataloader.ddp_setup(rank, world_size)
+        self.train_dataset.ddp_setup(rank, world_size)
         self.ddp = True
         if self.logging and rank == 0:
             self._init_writer()
@@ -168,7 +172,7 @@ class Trainer:
 
         return float(loss.detach()), metrics
 
-    def _run_epoch(self):
+    def _run_epoch(self, dataloader):
         graph = self.graph.module if self.ddp else self.graph
 
         train_loss = 0.0
@@ -176,7 +180,10 @@ class Trainer:
         num_batches = 0
         epoch_metrics = {}
 
-        for batch in self.train_dataloader:
+        for batch in dataloader:
+            
+            batch = self.train_dataset.create_batch(batch)
+
             loss, metrics = self._run_batch(batch)
             train_loss += loss
             for k, v in metrics.items():
@@ -233,8 +240,16 @@ class Trainer:
             range(self.num_epochs), desc="Epochs", disable=self.writer is None
         )
 
+        dataloader = torch.utils.data.DataLoader(
+            self.train_dataset, 
+            batch_size=None,
+            pin_memory=self.config.training.pin_memory, 
+            num_workers=self.num_workers,
+        )
+
         for epoch in epoch_iter:
-            train_loss = self._run_epoch()
+            self.train_dataset.set_epoch(epoch)
+            train_loss = self._run_epoch(dataloader)
 
             if self.writer is not None:
                 epoch_iter.set_postfix({"train_loss": f"{train_loss:.4f}"})
@@ -306,7 +321,6 @@ class ExperimentConfig:
         chunk_rows: int
         shuffle: bool
         seed: int | None
-        pin_memory: bool
         uniform_negative_items: int
         in_batch_negative_items: int
 
@@ -332,6 +346,8 @@ class ExperimentConfig:
         eval_every: int
         logging: bool
         log_dir: str
+        num_workers: int
+        pin_memory: bool
         console_logging: bool = True
         seed: int | None = None
 
@@ -350,7 +366,7 @@ class ExperimentConfig:
     evaluator: EvaluatorConfig
     config_name: str | None = None
 
-    def build_train_dataloader(self, train_histories) -> TrainingDataset:
+    def build_train_dataset(self, train_histories) -> TrainingDataset:
         return TrainingDataset(
             train_histories,
             **self.training_dataset.__dict__,
@@ -358,7 +374,7 @@ class ExperimentConfig:
             vocab_size=self.data.vocab_size,
         )
 
-    def build_test_dataloader(self, test_histories) -> TestDataset:
+    def build_test_dataset(self, test_histories) -> TestDataset:
         return TestDataset(test_histories, **self.test_dataset.__dict__)
 
     def build_optimizer(self, model_parameters) -> torch.optim.Optimizer:
@@ -377,10 +393,10 @@ class ExperimentConfig:
         )
 
     def build_evaluator(
-        self, test_dataloader, test_histories, test_targets, item_to_token
+        self, test_dataset, test_histories, test_targets, item_to_token
     ) -> Evaluator:
         return Evaluator(
-            test_dataloader,
+            test_dataset,
             test_histories,
             test_targets,
             item_to_token,
@@ -421,11 +437,11 @@ def prepare_data(config: ExperimentConfig):
         test, train_events, config.data.bos, config.data.max_seq_len
     )
 
-    train_dataloader = config.build_train_dataloader(train_histories)
+    train_dataset = config.build_train_dataset(train_histories)
 
-    test_dataset = config.build_test_dataloader(test_histories)
+    test_dataset = config.build_test_dataset(test_histories)
 
-    return train_dataloader, test_dataset, test_histories, test_targets, item_to_token
+    return train_dataset, test_dataset, test_histories, test_targets, item_to_token
 
 
 def run_training_on_device(
@@ -439,7 +455,7 @@ def run_training_on_device(
     config.training_dataset.device = rank
     config.test_dataset.device = rank
 
-    train_dataloader, test_dataloader, test_histories, test_targets, item_to_token = (
+    train_dataset, test_dataset, test_histories, test_targets, item_to_token = (
         prepare_data(config)
     )
 
@@ -449,7 +465,7 @@ def run_training_on_device(
     scheduler = config.build_scheduler(optimizer)
 
     evaluator = config.build_evaluator(
-        test_dataloader,
+        test_dataset,
         test_histories,
         test_targets,
         item_to_token,
@@ -457,15 +473,11 @@ def run_training_on_device(
 
     trainer = Trainer(
         graph=graph,
-        train_dataloader=train_dataloader,
+        train_dataset=train_dataset,
         optimizer=optimizer,
         scheduler=scheduler,
-        num_epochs=config.training.num_epochs,
-        grad_clip=config.training.grad_clip,
-        eval_every=config.training.eval_every,
         evaluator=evaluator,
-        logging=config.training.logging,
-        log_dir=config.training.log_dir,
+        **config.training.__dict__,
         config=config,
     )
 
