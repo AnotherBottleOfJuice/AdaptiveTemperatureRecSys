@@ -476,8 +476,14 @@ def run_training_on_device(
         train_dataset=train_dataset,
         optimizer=optimizer,
         scheduler=scheduler,
+        num_epochs=config.training.num_epochs,
+        grad_clip=config.training.grad_clip,
+        eval_every=config.training.eval_every,
         evaluator=evaluator,
-        **config.training.__dict__,
+        logging=config.training.logging,
+        log_dir=config.training.log_dir,
+        num_workers=config.training.num_workers,
+        pin_memory=config.training.pin_memory,
         config=config,
     )
 

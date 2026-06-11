@@ -58,9 +58,9 @@ training:
   num_epochs: 5
   grad_clip: 1.0
   eval_every: 1
-  logging: true
+  logging: false
   log_dir: mlruns
-  num_workers: 4
+  num_workers: 0
   pin_memory: true
   console_logging: true
   seed: 42
