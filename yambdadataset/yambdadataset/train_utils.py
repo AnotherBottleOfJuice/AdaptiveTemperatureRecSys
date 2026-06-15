@@ -33,7 +33,7 @@ def get_train_histories(train_events: pl.DataFrame, bos: int) -> pl.DataFrame:
             [
                 (
                     train_events.select("uid")
-                    .unique()
+                    .unique(maintain_order=True)
                     .with_columns(pl.lit(bos, dtype=pl.UInt32).alias("token_id"))
                     .with_columns(pl.lit(1, dtype=pl.Float64).alias("freq"))
                 ),

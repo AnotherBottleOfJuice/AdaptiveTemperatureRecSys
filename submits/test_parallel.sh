@@ -3,7 +3,7 @@
 #SBATCH --account=proj_1876
 #SBATCH --time=00:10:00
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=4
 #SBATCH --gpus=2
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=maanbessolitsyn@edu.hse.ru
