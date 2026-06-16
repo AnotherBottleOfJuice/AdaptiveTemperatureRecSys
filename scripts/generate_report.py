@@ -119,6 +119,12 @@ def prefix_agg(curves_list, metric, upto):
     return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
 
 
+def window_mean_agg(curves_list, metric, lo, hi):
+    """mean,std of the mean-in-window [lo:hi] across seeds."""
+    vals = [np.mean(c[metric][lo:hi]) for c in curves_list if c[metric][lo:hi]]
+    return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
+
+
 def fmt(m, s):
     return f"{m:.4f}±{s:.4f}"
 
@@ -260,6 +266,39 @@ def table_prefix(groups, base_order, lr_order, steps, title):
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------- window-mean table
+def table_window_mean(groups, base_order, lr_order, steps, title):
+    """Like table_prefix, but each cell is the mean recall inside the window
+    between consecutive checkpoints (not a running prefix max)."""
+    bounds, prev = [], 0
+    for s in steps:
+        bounds.append((prev, s))
+        prev = s
+    out = [f"## {title}", ""]
+    head = ["lr", "config"] + [
+        (f"E{lo + 1}–{hi}" if i == 0 else f"E{lo + 1}–{hi} (Δ%)")
+        for i, (lo, hi) in enumerate(bounds)]
+    out.append("| " + " | ".join(head) + " |")
+    out.append("|" + "---|" * len(head))
+    for base in base_order:
+        for lr in lr_order:
+            cl = groups.get((base, lr))
+            if not cl:
+                continue
+            cells, prev_mean = [], None
+            for i, (lo, hi) in enumerate(bounds):
+                mean, std = window_mean_agg(cl, "valid/recall", lo, hi)
+                if i == 0 or prev_mean is None or prev_mean == 0:
+                    cells.append(fmt(mean, std))
+                else:
+                    pct = (mean - prev_mean) / prev_mean * 100
+                    cells.append(f"{fmt(mean, std)} ({'+' if pct >= 0 else ''}{pct:.1f}%)")
+                prev_mean = mean
+            out.append(f"| {lr} | {base} | " + " | ".join(cells) + " |")
+    out.append("")
+    return "\n".join(out)
+
+
 def main():
     args = parse_args()
     fine = [int(x) for x in args.fine_steps.split(",")]
@@ -280,6 +319,8 @@ def main():
                             baseline, baseline_desc, args.window))
     print(table_prefix(groups, base_order, lr_order, fine,
                        "Prefix max recall, fine steps (Δ% vs previous)"))
+    print(table_window_mean(groups, base_order, lr_order, fine,
+                            "Window mean recall, fine steps (Δ% vs previous)"))
     print(table_prefix(groups, base_order, lr_order, coarse,
                        "Prefix max recall, coarse steps (Δ% vs previous)"))
 
