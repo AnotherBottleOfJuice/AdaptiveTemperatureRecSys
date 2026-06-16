@@ -60,7 +60,7 @@ training:
   eval_every: 1
   logging: True
   log_dir: mlruns
-  num_workers: 0
+  num_workers: 4
   pin_memory: true
   console_logging: true
   seed: 42
