@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 from torch import nn, Tensor
-from yambdadataset import TrainingBatch
+from recdata import TrainingBatch
 
 if TYPE_CHECKING:
     from .graph import Graph
