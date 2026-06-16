@@ -17,42 +17,6 @@ class TrainingBatch:
     negative_log_q: torch.Tensor | None
     positive_log_q: torch.Tensor | None
 
-    def pin_memory(self) -> "TrainingBatch":
-        return TrainingBatch(
-            inputs=self.inputs.pin_memory(),
-            targets=self.targets.pin_memory(),
-            negatives=self.negatives.pin_memory(),
-            size=self.size,
-            negative_log_q=(
-                self.negative_log_q.pin_memory()
-                if self.negative_log_q is not None
-                else None
-            ),
-            positive_log_q=(
-                self.positive_log_q.pin_memory()
-                if self.positive_log_q is not None
-                else None
-            ),
-        )
-
-    def to(self, device, non_blocking: bool = False) -> "TrainingBatch":
-        return TrainingBatch(
-            inputs=self.inputs.to(device, non_blocking=non_blocking),
-            targets=self.targets.to(device, non_blocking=non_blocking),
-            negatives=self.negatives.to(device, non_blocking=non_blocking),
-            size=self.size,
-            negative_log_q=(
-                self.negative_log_q.to(device, non_blocking=non_blocking)
-                if self.negative_log_q is not None
-                else None
-            ),
-            positive_log_q=(
-                self.positive_log_q.to(device, non_blocking=non_blocking)
-                if self.positive_log_q is not None
-                else None
-            ),
-        )
-
 
 class TrainingDataset(IterableDataset):
     def __init__(
@@ -100,23 +64,29 @@ class TrainingDataset(IterableDataset):
         batch_tokens = batch_token_ids.flatten().to(torch.long)
         batch_size = max(int(batch_tokens.numel()), 1)
 
-        # Guard against out-of-range token ids to avoid CUDA device-side asserts.
         valid_batch_mask = (batch_tokens >= 0) & (batch_tokens < self.vocab_size)
-        safe_batch_tokens = batch_tokens[valid_batch_mask]
-        multiplicity = torch.bincount(safe_batch_tokens, minlength=self.vocab_size)
-        q = multiplicity.to(dtype=torch.float32) / float(batch_size)
-        q[BOS] = 1
+        uniq, counts = torch.unique(batch_tokens[valid_batch_mask], return_counts=True)
 
         sampled_token_ids = sampled_token_ids.to(torch.long)
         sampled_q = torch.full(
             sampled_token_ids.shape,
             self.min_freq,
             dtype=torch.float32,
+            device=sampled_token_ids.device,
         )
         valid_sampled_mask = (sampled_token_ids >= 0) & (
             sampled_token_ids < self.vocab_size
         )
-        sampled_q[valid_sampled_mask] = q[sampled_token_ids[valid_sampled_mask]]
+
+        if uniq.numel() > 0:
+            valid_sampled = sampled_token_ids[valid_sampled_mask]
+            pos = torch.bucketize(valid_sampled, uniq).clamp(max=uniq.numel() - 1)
+            matched = uniq[pos] == valid_sampled
+            freq = torch.where(matched, counts[pos], torch.zeros_like(counts[pos]))
+            sampled_q[valid_sampled_mask] = freq.to(torch.float32) / float(batch_size)
+
+        # BOS is treated as fully present (q = 1), matching the original behaviour.
+        sampled_q[sampled_token_ids == BOS] = 1.0
         return torch.clamp(sampled_q, min=self.min_freq)
 
     def ddp_setup(self, rank: int, world_size: int):
@@ -148,19 +118,21 @@ class TrainingDataset(IterableDataset):
         )
 
     def create_batch(self, t_cpu: torch.Tensor):
-        t = t_cpu
+        t = t_cpu.to(self.device, non_blocking=True)
         inputs = t[:-1].view((self.batch_size, self.seq_len))
         targets = t[1:].view((self.batch_size, self.seq_len))
         uniform_negatives = torch.randint(
             1,
             self.vocab_size,
             (self.uniform_negative_items,),
+            device=self.device,
         )
 
         ndx = torch.randint(
             0,
             self.batch_num_tokens - 1,
             (self.in_batch_negative_items,),
+            device=self.device,
         )
         in_batch_negatives = t.flatten()[ndx]
         in_batch_mask = in_batch_negatives != BOS
@@ -179,6 +151,7 @@ class TrainingDataset(IterableDataset):
             (negatives.numel(),),
             self.uniform_prob,
             dtype=torch.float32,
+            device=self.device,
         ) + self.in_batch_negative_items * self._in_batch_negative_q(
             t, negatives
         )
@@ -200,4 +173,4 @@ class TrainingDataset(IterableDataset):
         bnt = self.batch_num_tokens
         for i in range(w_id, self.usable_batches, w_num):
             chunk = self._tokens[i * bnt : i * bnt + bnt]
-            yield self.create_batch(torch.tensor(chunk))
+            yield torch.tensor(chunk)
