@@ -78,8 +78,6 @@ class Trainer:
         evaluator: Evaluator | None,
         logging: bool,
         log_dir: str,
-        num_workers: int,
-        pin_memory: bool,
         config: "ExperimentConfig | None" = None,
     ):
         self.graph = graph
@@ -92,8 +90,6 @@ class Trainer:
         self.evaluator = evaluator
         self.logging = logging
         self.log_dir = log_dir
-        self.num_workers = num_workers
-        self.pin_memory = pin_memory
         self.config = config
         self.ddp = False
         self.writer = None
@@ -172,7 +168,7 @@ class Trainer:
 
         return float(loss.detach()), metrics
 
-    def _run_epoch(self, dataloader):
+    def _run_epoch(self):
         graph = self.graph.module if self.ddp else self.graph
 
         train_loss = 0.0
@@ -180,9 +176,7 @@ class Trainer:
         num_batches = 0
         epoch_metrics = {}
 
-        for batch in dataloader:
-            batch = self.train_dataset.create_batch(batch)
-
+        for batch in self.train_dataset:
             loss, metrics = self._run_batch(batch)
             train_loss += loss
             for k, v in metrics.items():
@@ -239,16 +233,9 @@ class Trainer:
             range(self.num_epochs), desc="Epochs", disable=self.writer is None
         )
 
-        dataloader = torch.utils.data.DataLoader(
-            self.train_dataset, 
-            batch_size=None,
-            pin_memory=self.config.training.pin_memory, 
-            num_workers=self.num_workers,
-        )
-
         for epoch in epoch_iter:
             self.train_dataset.set_epoch(epoch)
-            train_loss = self._run_epoch(dataloader)
+            train_loss = self._run_epoch()
 
             if self.writer is not None:
                 epoch_iter.set_postfix({"train_loss": f"{train_loss:.4f}"})
@@ -345,8 +332,6 @@ class ExperimentConfig:
         eval_every: int
         logging: bool
         log_dir: str
-        num_workers: int
-        pin_memory: bool
         console_logging: bool = True
         seed: int | None = None
 
@@ -481,8 +466,6 @@ def run_training_on_device(
         evaluator=evaluator,
         logging=config.training.logging,
         log_dir=config.training.log_dir,
-        num_workers=config.training.num_workers,
-        pin_memory=config.training.pin_memory,
         config=config,
     )
 
