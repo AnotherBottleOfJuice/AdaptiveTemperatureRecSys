@@ -181,7 +181,7 @@ class Trainer:
         epoch_metrics = {}
 
         for batch in dataloader:
-            batch = batch.to(self.train_dataset.device, non_blocking=True)
+            batch = self.train_dataset.create_batch(batch)
 
             loss, metrics = self._run_batch(batch)
             train_loss += loss
