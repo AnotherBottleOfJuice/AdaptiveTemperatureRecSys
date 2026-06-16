@@ -5,7 +5,6 @@ from .loader import get_general_data
 
 
 class YambdaDataset:
-    """Yandex Music (Yambda) interactions with embedding/artist filtering."""
 
     def __init__(
         self,

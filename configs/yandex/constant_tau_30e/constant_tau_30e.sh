@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/constant_tau_30e.yaml
+python main.py configs/yandex/constant_tau_30e/constant_tau_30e.yaml
