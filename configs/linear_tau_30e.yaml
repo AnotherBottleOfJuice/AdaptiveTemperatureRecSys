@@ -17,12 +17,15 @@ data:
   vocab_size: 157162
   max_seq_len: 100
   bos: 0
-  path_interactions: data/interactions.parquet
-  path_embeddings: data/embeddings.parquet
-  path_artists: data/artists.parquet
-  core_min_interaction_per_user: 5
-  test_interval_seconds: 604800  # 7 days
   max_train_events_per_user: 100
+  dataset:
+    class_name: YambdaDataset
+    json_args:
+      path_interactions: data/interactions.parquet
+      path_embeddings: data/embeddings.parquet
+      path_artists: data/artists.parquet
+      core_min_interaction_per_item: 5
+      test_interval_seconds: 604800  # 7 days
 
 tau:
   class_name: LinearTau

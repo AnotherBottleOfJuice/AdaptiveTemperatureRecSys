@@ -3,7 +3,7 @@ import torch.distributed as dist
 from torch import nn
 import torch.nn.functional as F
 
-from yambdadataset import TrainingBatch
+from recdata import TrainingBatch
 from .transformer import GPT
 from .tau import Tau, TauContext
 

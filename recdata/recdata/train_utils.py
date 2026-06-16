@@ -10,7 +10,7 @@ def get_train_events(
     train_events = (
         train.join(item_to_token_id, on="item_id", how="inner")
         .sort("timestamp")
-        .drop(["is_organic", "len", "item_id"])
+        .drop("item_id")
     )
 
     if item_to_freq is not None:

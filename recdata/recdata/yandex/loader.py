@@ -6,7 +6,7 @@ def get_general_data(
     path_interactions: str,
     path_embeddings: str,
     path_artists: str,
-    core_min_interaction_per_user: int,
+    core_min_interaction_per_item: int,
     test_interval_seconds: int,
 ):
     interactions = pl.read_parquet(path_interactions)
@@ -18,7 +18,7 @@ def get_general_data(
     count = interactions.group_by("item_id").len()
 
     interactions = interactions.join(count, on="item_id", how="left").filter(
-        pl.col("len") >= core_min_interaction_per_user
+        pl.col("len") >= core_min_interaction_per_item
     )
 
     interactions = interactions.join(artists, on="item_id", how="semi")
@@ -38,24 +38,3 @@ def get_general_data(
     )
 
     return train, test, embeddings, artists, test_targets
-
-
-def get_item_to_freq(train: pl.DataFrame):
-    return train.select("item_id").to_series().value_counts(normalize=True, name="freq")
-
-
-def get_item_to_token(train: pl.DataFrame, vocab_size: int | None):
-    return (
-        train.select("item_id")
-        .group_by("item_id")
-        .len()
-        .rename({"len": "count"})
-        .sort("item_id")
-        .reverse()
-        .sort("count")
-        .reverse()
-        .slice(0, vocab_size if vocab_size else None)
-        .with_row_index(name="token_id")
-        .with_columns(pl.col("token_id") + 1)
-        .select(("item_id", "token_id"))
-    )
