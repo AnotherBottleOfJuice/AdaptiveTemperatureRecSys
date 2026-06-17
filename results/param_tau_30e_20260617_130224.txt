@@ -91,3 +91,156 @@ recall: 0.1114
 ndcg: 0.0437
 coverage: 0.3367
 --------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=123)
+hitrate: 0.3474
+recall: 0.1162
+ndcg: 0.0454
+coverage: 0.4504
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=456)
+hitrate: 0.3470
+recall: 0.1163
+ndcg: 0.0456
+coverage: 0.4647
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=42)
+hitrate: 0.3377
+recall: 0.1118
+ndcg: 0.0443
+coverage: 0.3095
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=123)
+hitrate: 0.3442
+recall: 0.1155
+ndcg: 0.0458
+coverage: 0.3772
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=456)
+hitrate: 0.3492
+recall: 0.1184
+ndcg: 0.0465
+coverage: 0.4649
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=42)
+hitrate: 0.3444
+recall: 0.1185
+ndcg: 0.0471
+coverage: 0.1838
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=123)
+hitrate: 0.3551
+recall: 0.1217
+ndcg: 0.0484
+coverage: 0.2741
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=456)
+hitrate: 0.3612
+recall: 0.1256
+ndcg: 0.0495
+coverage: 0.2561
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=42)
+hitrate: 0.3555
+recall: 0.1221
+ndcg: 0.0492
+coverage: 0.2526
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=123)
+hitrate: 0.3622
+recall: 0.1251
+ndcg: 0.0498
+coverage: 0.2897
+--------------------------------
+--------------------------------
+Experiment name: Param[init=0.045]  (seed=456)
+hitrate: 0.3664
+recall: 0.1262
+ndcg: 0.0499
+coverage: 0.2740
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.03
+tau.json_args.tau_max: 0.055
+hitrate: 0.3340 ± 0.0054
+recall: 0.1106 ± 0.0022
+ndcg: 0.0437 ± 0.0010
+coverage: 0.3077 ± 0.0225
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.03
+tau.json_args.tau_max: 0.06
+hitrate: 0.3366 ± 0.0038
+recall: 0.1120 ± 0.0017
+ndcg: 0.0443 ± 0.0003
+coverage: 0.3180 ± 0.0313
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.035
+tau.json_args.tau_max: 0.055
+hitrate: 0.3460 ± 0.0048
+recall: 0.1198 ± 0.0017
+ndcg: 0.0481 ± 0.0008
+coverage: 0.2092 ± 0.0083
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.035
+tau.json_args.tau_max: 0.06
+hitrate: 0.3456 ± 0.0017
+recall: 0.1184 ± 0.0003
+ndcg: 0.0475 ± 0.0001
+coverage: 0.2095 ± 0.0114
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.03
+tau.json_args.tau_max: 0.055
+hitrate: 0.3431 ± 0.0070
+recall: 0.1146 ± 0.0028
+ndcg: 0.0449 ± 0.0010
+coverage: 0.4173 ± 0.0701
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.03
+tau.json_args.tau_max: 0.06
+hitrate: 0.3437 ± 0.0058
+recall: 0.1152 ± 0.0033
+ndcg: 0.0455 ± 0.0011
+coverage: 0.3839 ± 0.0779
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.035
+tau.json_args.tau_max: 0.055
+hitrate: 0.3536 ± 0.0085
+recall: 0.1219 ± 0.0035
+ndcg: 0.0483 ± 0.0012
+coverage: 0.2380 ± 0.0478
+--------------------------------
+Experiment name: Param[init=0.045]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.035
+tau.json_args.tau_max: 0.06
+hitrate: 0.3613 ± 0.0055
+recall: 0.1245 ± 0.0021
+ndcg: 0.0496 ± 0.0004
+coverage: 0.2721 ± 0.0187
+--------------------------------
