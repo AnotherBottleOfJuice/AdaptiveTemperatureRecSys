@@ -125,6 +125,12 @@ def window_mean_agg(curves_list, metric, lo, hi):
     return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
 
 
+def epochs_to_max_agg(curves_list, metric):
+    """mean,std of the (1-indexed) epoch at which `metric` peaks, across seeds."""
+    vals = [int(np.argmax(c[metric])) + 1 for c in curves_list if c[metric]]
+    return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
+
+
 def fmt(m, s):
     return f"{m:.4f}±{s:.4f}"
 
@@ -299,6 +305,27 @@ def table_window_mean(groups, base_order, lr_order, steps, title):
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------- epochs-to-max table
+def table_epochs_to_max(groups, base_order, lr_order):
+    """Mean (over seeds) number of epochs needed to reach the peak Recall / NDCG."""
+    out = ["## Epochs to reach max (mean±std over seeds)", ""]
+    out.append("| Config | lr | n | Epochs→max Recall | Epochs→max NDCG |")
+    out.append("|---|---|---|---|---|")
+    for base in base_order:
+        for lr in lr_order:
+            cl = groups.get((base, lr))
+            if not cl:
+                continue
+            n = len(cl)
+            rec = epochs_to_max_agg(cl, "valid/recall")
+            ndcg = epochs_to_max_agg(cl, "valid/ndcg")
+            out.append(
+                f"| {base} | {lr} | {n} | {rec[0]:.1f}±{rec[1]:.1f} | "
+                f"{ndcg[0]:.1f}±{ndcg[1]:.1f} |")
+    out.append("")
+    return "\n".join(out)
+
+
 def main():
     args = parse_args()
     fine = [int(x) for x in args.fine_steps.split(",")]
@@ -311,6 +338,7 @@ def main():
     groups, base_order, lr_order = group_runs(runs)
 
     print(f"# {args.experiment}\n")
+    print(table_epochs_to_max(groups, base_order, lr_order))
     print(table_windowed(groups, base_order, lr_order, args.window))
     print(table_final_comparison(groups, base_order, lr_order, args.window))
     baseline, baseline_desc = load_baseline(
