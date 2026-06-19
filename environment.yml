@@ -1,0 +1,23 @@
+name: adaptivetemperaturerecsys
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.12
+  - matplotlib
+  - python-dotenv
+  - mlflow
+  - datasets
+  - polars
+  - ipykernel
+  - jupyter
+  - kaggle
+  - pip
+  - gdown
+  - pip:
+      - torch>=2.1.0
+      - torchvision
+      - -e ./yambdadataset
+      - -e ./sasrec/model
+      - -e ./sasrec
+      - -e .

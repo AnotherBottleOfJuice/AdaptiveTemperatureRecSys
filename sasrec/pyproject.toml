@@ -13,6 +13,3 @@ dependencies = [
 [tool.setuptools]
 packages = ["sasrec", "model"] 
 package-dir = {"sasrec" = ".", "model" = "model"}
-
-[tool.uv.sources]
-sasrec = { workspace = true }

@@ -1,0 +1,76 @@
+Looking in indexes: http://nexus.charisma:5080/repository/pypi-proxy/simple
+Obtaining file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys/yambdadataset
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Obtaining file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys/sasrec/model
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Obtaining file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys/sasrec
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Obtaining file:///home/maanbessolitsyn/AdaptiveTemperatureRecSys
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Collecting matplotlib
+  Downloading matplotlib-3.10.9-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (8.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 8.8/8.8 MB 219.9 MB/s  0:00:00
+Collecting python-dotenv
+  Downloading python_dotenv-1.2.2-py3-none-any.whl (22 kB)
+Collecting mlflow
+  Downloading mlflow-3.13.0-py3-none-any.whl (10.8 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 10.8/10.8 MB 214.3 MB/s  0:00:00
+Collecting datasets
+  Downloading datasets-5.0.0-py3-none-any.whl (555 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 555.1/555.1 kB 210.3 MB/s  0:00:00
+Collecting polars
+  Downloading polars-1.41.2-py3-none-any.whl (833 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 833.4/833.4 kB 172.1 MB/s  0:00:00
+Collecting ipykernel
+  Downloading ipykernel-7.2.0-py3-none-any.whl (118 kB)
+Collecting jupyter
+  Downloading jupyter-1.1.1-py2.py3-none-any.whl (2.7 kB)
+Collecting kaggle
+  Downloading kaggle-2.2.1-py3-none-any.whl (132 kB)
+Collecting torch
+  Downloading torch-2.6.0-cp313-cp313-manylinux1_x86_64.whl (766.6 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 766.6/766.6 MB 312.9 MB/s  0:00:02
+Collecting torchvision
+  Downloading torchvision-0.21.0-cp313-cp313-manylinux1_x86_64.whl (7.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 7.2/7.2 MB 169.6 MB/s  0:00:00
+INFO: pip is looking at multiple versions of adaptivetemperaturerecsys to determine which version is compatible with other requirements. This could take a while.
+
+The conflict is caused by:
+    The user requested torch
+    adaptivetemperaturerecsys 0.1.0 depends on torch>=2.10.0
+
+Additionally, some packages in these conflicts have no matching distributions available for your environment:
+    torch
+
+To fix this you could try to:
+1. loosen the range of package versions you've specified
+2. remove package versions to allow pip to attempt to solve the dependency conflict
+

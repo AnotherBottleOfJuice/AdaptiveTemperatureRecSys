@@ -1,0 +1,90 @@
+Sweep: 3 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Constant[value=0.035]  (seed=42)
+hitrate: 0.3525
+recall: 0.1195
+ndcg: 0.0471
+coverage: 0.4935
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.035]  (seed=123)
+hitrate: 0.3509
+recall: 0.1204
+ndcg: 0.0486
+coverage: 0.2695
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.035]  (seed=456)
+hitrate: 0.3613
+recall: 0.1245
+ndcg: 0.0503
+coverage: 0.3575
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.04]  (seed=42)
+hitrate: 0.3411
+recall: 0.1193
+ndcg: 0.0479
+coverage: 0.2494
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.04]  (seed=123)
+hitrate: 0.3598
+recall: 0.1270
+ndcg: 0.0517
+coverage: 0.3137
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.04]  (seed=456)
+hitrate: 0.3616
+recall: 0.1272
+ndcg: 0.0520
+coverage: 0.3282
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.45]  (seed=42)
+hitrate: 0.1224
+recall: 0.0289
+ndcg: 0.0099
+coverage: 0.0105
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.45]  (seed=123)
+hitrate: 0.1141
+recall: 0.0273
+ndcg: 0.0089
+coverage: 0.0094
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.45]  (seed=456)
+hitrate: 0.1256
+recall: 0.0300
+ndcg: 0.0100
+coverage: 0.0152
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Constant[value=0.035]
+tau.json_args.initial_tau: 0.035
+hitrate: 0.3549 ± 0.0056
+recall: 0.1215 ± 0.0026
+ndcg: 0.0486 ± 0.0016
+coverage: 0.3735 ± 0.1128
+--------------------------------
+Experiment name: Constant[value=0.04]
+tau.json_args.initial_tau: 0.04
+hitrate: 0.3542 ± 0.0113
+recall: 0.1245 ± 0.0045
+ndcg: 0.0505 ± 0.0022
+coverage: 0.2971 ± 0.0419
+--------------------------------
+Experiment name: Constant[value=0.45]
+tau.json_args.initial_tau: 0.45
+hitrate: 0.1207 ± 0.0059
+recall: 0.0287 ± 0.0014
+ndcg: 0.0096 ± 0.0006
+coverage: 0.0117 ± 0.0031
+--------------------------------
