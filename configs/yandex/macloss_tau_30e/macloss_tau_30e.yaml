@@ -1,0 +1,91 @@
+# Mean-confidence adaptive temperature (MACLossTau).
+#
+# tau = ((pos_logit_mean - base_threshold) * linear_coeff + initial_tau)
+#         .clamp(tau_min, tau_max)
+#
+# A single scalar tau driven by the running mean positive logit (model confidence),
+# NOT by training time. As the model grows more confident (pos_logit_mean rises),
+# a negative linear_coeff sharpens tau toward tau_min.
+#
+# Grounded in train logit stats from mlruns/mlflow.db (cosine sim in [-1, 1]):
+#   train/pos_logit_mean: ~0.13 early -> ~0.30 late training, avg ~0.27
+#   (overall min 0.127, max 0.489 across all runs)
+# tau_min/tau_max reuse the best CosPerUser sweep (min=0.04, max=0.065); best
+# ConstantTau sat at 0.045.
+#
+# Calibration target: tau ~0.065 (soft) at pos_logit_mean~0.13 (early/unconfident)
+# falling to tau ~0.04 (sharp) at pos_logit_mean~0.30 (late/confident).
+#   base_threshold=0.215 (mid of logit band), initial_tau=0.0525 (tau at threshold),
+#   linear_coeff=-0.147 => slope (0.04-0.065)/(0.30-0.13).
+# The clamp keeps tau in [0.04, 0.065] for logits outside this band.
+sweep:
+  seeds: [42, 123, 456]
+  grid:
+    optimizer.json_args.lr: [3.0e-3]
+    tau.json_args.base_threshold: [0.19, 0.215, 0.24]
+    tau.json_args.linear_coeff: [-0.1, -0.147, -0.2]
+
+graph:
+  n_layers: 4
+  d_model: 256
+  n_heads: 4
+  dropout: 0.0
+  log_q_correction: 1.0
+  is_cosine_similarity: true
+
+data:
+  vocab_size: 157162
+  max_seq_len: 100
+  bos: 0
+  path_interactions: data/interactions.parquet
+  path_embeddings: data/embeddings.parquet
+  path_artists: data/artists.parquet
+  core_min_interaction_per_user: 5
+  test_interval_seconds: 604800  # 7 days
+  max_train_events_per_user: 100
+
+tau:
+  class_name: MACLossTau
+  json_args:
+    initial_tau: 0.0525
+    tau_min: 0.04
+    tau_max: 0.065
+    num_epochs: 30
+    num_tokens_per_epoch: 4019032
+    base_threshold: 0.215
+    linear_coeff: -0.147
+
+training_dataset:
+  batch_size: 128
+  device: cuda
+  chunk_rows: 64000
+  shuffle: true
+  seed: 42
+  uniform_negative_items: 22000
+  in_batch_negative_items: 8000
+
+test_dataset:
+  batch_size: 32
+  device: cuda
+
+optimizer:
+  class_name: AdamW
+  json_args:
+    lr: 3.0e-3
+    weight_decay: 1.0e-5
+
+scheduler:
+  class_name: null
+  json_args: {}
+
+training:
+  num_epochs: 30
+  grad_clip: 1.0
+  eval_every: 1
+  logging: true
+  log_dir: mlruns
+  console_logging: true
+  seed: 42
+
+evaluator:
+  topk: 100

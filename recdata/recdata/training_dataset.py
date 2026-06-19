@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-import numpy as np
 import polars as pl
 import torch
 from torch.utils.data import IterableDataset
@@ -34,7 +33,6 @@ class TrainingDataset(IterableDataset):
     ):
         super().__init__()
 
-        self.df = df
         self.batch_size = batch_size
         self.seq_len = seq_len
         self.device = device
@@ -47,13 +45,22 @@ class TrainingDataset(IterableDataset):
         self.min_freq = 1e-12
         self.epoch = 0
         self.ddp = False
-        self._tokens = None
+        self.rank = 0
+        self.world_size = 1
         self.usable_batches = 0
 
         self.batch_num_tokens = batch_size * seq_len + 1
-        self.total_num_tokens = int(self.df.get_column("token_id").list.len().sum())
-
         self.uniform_prob = float(uniform_negative_items) / max(self.vocab_size - 1, 1)
+
+        row_lens = df.get_column("token_id").list.len().to_numpy()
+        tokens = df.explode("token_id").get_column("token_id").cast(int).to_numpy()
+
+        self.total_num_tokens = int(tokens.shape[0])
+        self._all_tokens = torch.tensor(tokens, dtype=torch.long, device=device)
+        self._row_lens = torch.tensor(row_lens, dtype=torch.long, device=device)
+        self._row_starts = torch.cumsum(self._row_lens, 0) - self._row_lens
+
+        self._epoch_tokens = self._all_tokens
 
     def __len__(self):
         return self.total_num_tokens // self.batch_num_tokens
@@ -64,26 +71,28 @@ class TrainingDataset(IterableDataset):
         batch_tokens = batch_token_ids.flatten().to(torch.long)
         batch_size = max(int(batch_tokens.numel()), 1)
 
-        # Guard against out-of-range token ids to avoid CUDA device-side asserts.
         valid_batch_mask = (batch_tokens >= 0) & (batch_tokens < self.vocab_size)
-        safe_batch_tokens = batch_tokens[valid_batch_mask]
-        multiplicity = torch.bincount(safe_batch_tokens, minlength=self.vocab_size).to(
-            self.device
-        )
-        q = multiplicity.to(dtype=torch.float32) / float(batch_size)
-        q[BOS] = 1
+        uniq, counts = torch.unique(batch_tokens[valid_batch_mask], return_counts=True)
 
         sampled_token_ids = sampled_token_ids.to(torch.long)
         sampled_q = torch.full(
             sampled_token_ids.shape,
             self.min_freq,
-            device=self.device,
             dtype=torch.float32,
+            device=sampled_token_ids.device,
         )
         valid_sampled_mask = (sampled_token_ids >= 0) & (
             sampled_token_ids < self.vocab_size
         )
-        sampled_q[valid_sampled_mask] = q[sampled_token_ids[valid_sampled_mask]]
+
+        if uniq.numel() > 0:
+            valid_sampled = sampled_token_ids[valid_sampled_mask]
+            pos = torch.bucketize(valid_sampled, uniq).clamp(max=uniq.numel() - 1)
+            matched = uniq[pos] == valid_sampled
+            freq = torch.where(matched, counts[pos], torch.zeros_like(counts[pos]))
+            sampled_q[valid_sampled_mask] = freq.to(torch.float32) / float(batch_size)
+
+        sampled_q[sampled_token_ids == BOS] = 1.0
         return torch.clamp(sampled_q, min=self.min_freq)
 
     def ddp_setup(self, rank: int, world_size: int):
@@ -91,31 +100,45 @@ class TrainingDataset(IterableDataset):
         self.world_size = world_size
         self.ddp = True
 
-    def set_epoch(self, epoch: int):
-        self.epoch = epoch
-
-        df = self.df
+    def _epoch_token_stream(self) -> torch.Tensor:
+        n_rows = self._row_lens.numel()
         if self.shuffle:
-            seed = self.seed + epoch if self.seed is not None else None
-            df = df.sample(fraction=1, shuffle=True, seed=seed)
+            if self.seed is not None:
+                gen = torch.Generator(device=self.device)
+                gen.manual_seed(self.seed + self.epoch)
+                perm = torch.randperm(n_rows, generator=gen, device=self.device)
+            else:
+                perm = torch.randperm(n_rows, device=self.device)
+        else:
+            perm = torch.arange(n_rows, device=self.device)
 
         if self.ddp:
-            row_lens = df.get_column("token_id").list.len().to_numpy()
+            lens = self._row_lens[perm]
             shard_tokens = min(
-                int(row_lens[r :: self.world_size].sum())
+                int(lens[r :: self.world_size].sum())
                 for r in range(self.world_size)
             )
             self.usable_batches = shard_tokens // self.batch_num_tokens
-            df = df.gather_every(self.world_size, offset=self.rank)
+            perm = perm[self.rank :: self.world_size]
         else:
             self.usable_batches = self.total_num_tokens // self.batch_num_tokens
 
-        self._tokens = (
-            df.explode("token_id").get_column("token_id").cast(int).to_numpy()
-        )
+        lens = self._row_lens[perm]
+        starts = self._row_starts[perm]
 
-    def create_batch(self, t_cpu: torch.Tensor):
-        t = t_cpu.to(self.device, non_blocking=True)
+        out_starts = torch.cumsum(lens, 0) - lens
+        row_of = torch.repeat_interleave(
+            torch.arange(lens.numel(), device=self.device), lens
+        )
+        within = torch.arange(int(lens.sum()), device=self.device) - out_starts[row_of]
+        gather = starts[row_of] + within
+        return self._all_tokens[gather]
+
+    def set_epoch(self, epoch: int):
+        self.epoch = epoch
+        self._epoch_tokens = self._epoch_token_stream()
+
+    def create_batch(self, t: torch.Tensor) -> TrainingBatch:
         inputs = t[:-1].view((self.batch_size, self.seq_len))
         targets = t[1:].view((self.batch_size, self.seq_len))
         uniform_negatives = torch.randint(
@@ -147,8 +170,8 @@ class TrainingDataset(IterableDataset):
         negative_q = torch.full(
             (negatives.numel(),),
             self.uniform_prob,
-            device=self.device,
             dtype=torch.float32,
+            device=self.device,
         ) + self.in_batch_negative_items * self._in_batch_negative_q(
             t, negatives
         )
@@ -163,11 +186,7 @@ class TrainingDataset(IterableDataset):
         )
 
     def __iter__(self):
-        info = torch.utils.data.get_worker_info()
-        w_id = info.id if info is not None else 0
-        w_num = info.num_workers if info is not None else 1
-
         bnt = self.batch_num_tokens
-        for i in range(w_id, self.usable_batches, w_num):
-            chunk = self._tokens[i * bnt : i * bnt + bnt]
-            yield torch.tensor(chunk)
+        for i in range(self.usable_batches):
+            chunk = self._epoch_tokens[i * bnt : i * bnt + bnt]
+            yield self.create_batch(chunk)

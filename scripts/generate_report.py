@@ -87,6 +87,12 @@ def config_label(params):
 
     if tau_cls == "LinearTau" or (targs.get("tau_min") is not None):
         base = f"min={targs.get('tau_min')}, max={targs.get('tau_max')}"
+        # shift/scale (ShiftedCosPerUserTau & friends) are part of the config
+        # identity: without them every shift/scale combo collapses into one group.
+        if targs.get("shift") is not None:
+            base += f", shift={targs.get('shift')}"
+        if targs.get("scale") is not None:
+            base += f", scale={targs.get('scale')}"
     elif tau_cls == "ConstantTau" or (targs.get("initial_tau") is not None):
         base = f"tau={targs.get('initial_tau')}"
     else:
@@ -116,6 +122,18 @@ def agg(curves_list, metric, lo, hi):
 
 def prefix_agg(curves_list, metric, upto):
     vals = [max(c[metric][:upto]) for c in curves_list if c[metric][:upto]]
+    return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
+
+
+def window_mean_agg(curves_list, metric, lo, hi):
+    """mean,std of the mean-in-window [lo:hi] across seeds."""
+    vals = [np.mean(c[metric][lo:hi]) for c in curves_list if c[metric][lo:hi]]
+    return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
+
+
+def epochs_to_max_agg(curves_list, metric):
+    """mean,std of the (1-indexed) epoch at which `metric` peaks, across seeds."""
+    vals = [int(np.argmax(c[metric])) + 1 for c in curves_list if c[metric]]
     return (np.mean(vals), np.std(vals)) if vals else (float("nan"), float("nan"))
 
 
@@ -260,6 +278,153 @@ def table_prefix(groups, base_order, lr_order, steps, title):
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------- window-mean table
+def table_window_mean(groups, base_order, lr_order, steps, title):
+    """Like table_prefix, but each cell is the mean recall inside the window
+    between consecutive checkpoints (not a running prefix max)."""
+    bounds, prev = [], 0
+    for s in steps:
+        bounds.append((prev, s))
+        prev = s
+    out = [f"## {title}", ""]
+    head = ["lr", "config"] + [
+        (f"E{lo + 1}–{hi}" if i == 0 else f"E{lo + 1}–{hi} (Δ%)")
+        for i, (lo, hi) in enumerate(bounds)]
+    out.append("| " + " | ".join(head) + " |")
+    out.append("|" + "---|" * len(head))
+    for base in base_order:
+        for lr in lr_order:
+            cl = groups.get((base, lr))
+            if not cl:
+                continue
+            cells, prev_mean = [], None
+            for i, (lo, hi) in enumerate(bounds):
+                mean, std = window_mean_agg(cl, "valid/recall", lo, hi)
+                if i == 0 or prev_mean is None or prev_mean == 0:
+                    cells.append(fmt(mean, std))
+                else:
+                    pct = (mean - prev_mean) / prev_mean * 100
+                    cells.append(f"{fmt(mean, std)} ({'+' if pct >= 0 else ''}{pct:.1f}%)")
+                prev_mean = mean
+            out.append(f"| {lr} | {base} | " + " | ".join(cells) + " |")
+    out.append("")
+    return "\n".join(out)
+
+
+# ---------------------------------------------------------------- epochs-to-max table
+def table_epochs_to_max(groups, base_order, lr_order):
+    """Mean (over seeds) number of epochs needed to reach the peak Recall / NDCG."""
+    out = ["## Epochs to reach max (mean±std over seeds)", ""]
+    out.append("| Config | lr | n | Epochs→max Recall | Epochs→max NDCG |")
+    out.append("|---|---|---|---|---|")
+    for base in base_order:
+        for lr in lr_order:
+            cl = groups.get((base, lr))
+            if not cl:
+                continue
+            n = len(cl)
+            rec = epochs_to_max_agg(cl, "valid/recall")
+            ndcg = epochs_to_max_agg(cl, "valid/ndcg")
+            out.append(
+                f"| {base} | {lr} | {n} | {rec[0]:.1f}±{rec[1]:.1f} | "
+                f"{ndcg[0]:.1f}±{ndcg[1]:.1f} |")
+    out.append("")
+    return "\n".join(out)
+
+
+# ---------------------------------------------------------------- scale × shift
+def tau_params(params):
+    try:
+        return ast.literal_eval(params.get("tau_json_args", "{}"))
+    except (ValueError, SyntaxError):
+        return {}
+
+
+def group_shift_scale(runs):
+    """{(tau_min, tau_max, lr): {(shift, scale): [curve_dicts]}}.
+
+    Each leaf list holds the per-seed curves for one exact config, so the only
+    aggregation that ever happens is across seeds — never across shift/scale/lr.
+    Returns ({}, [], []) when the experiment has no shift/scale params.
+    """
+    groups = defaultdict(lambda: defaultdict(list))
+    shifts, scales = set(), set()
+    for r in runs.values():
+        t = tau_params(r["params"])
+        shift, scale = t.get("shift"), t.get("scale")
+        if shift is None or scale is None:
+            continue
+        lr = r["params"].get("learning_rate", "?")
+        groups[(t.get("tau_min"), t.get("tau_max"), lr)][(shift, scale)].append(
+            r["curves"])
+        shifts.add(shift)
+        scales.add(scale)
+    return groups, sorted(shifts), sorted(scales)
+
+
+def table_shift_scale_pivot(runs, window, metric="valid/recall"):
+    """Pivot of (mean±std over seeds) per (shift, scale), one block per min/max/lr.
+
+    Reading down a column compares shifts at a fixed scale; reading across a row
+    compares scales at a fixed shift. Every cell is a single config (only seeds
+    pooled), so nothing is grouped by anything other than seed.
+    """
+    groups, shifts, scales = group_shift_scale(runs)
+    if not groups:
+        return ""
+    name = metric.split("/")[-1].capitalize()
+    out = [f"## {name} by shift × scale (mean±std over seeds)", ""]
+    for (tmin, tmax, lr) in sorted(groups):
+        cells = groups[(tmin, tmax, lr)]
+        out.append(f"### min={tmin}, max={tmax}, lr={lr}")
+        out.append("")
+        out.append("| shift \\ scale | " + " | ".join(f"{s:g}" for s in scales) + " |")
+        out.append("|" + "---|" * (len(scales) + 1))
+        for shift in shifts:
+            row = [f"{shift:g}"]
+            for scale in scales:
+                cl = cells.get((shift, scale))
+                if cl:
+                    ne = max_epochs(cl)
+                    row.append(fmt(*agg(cl, metric, max(0, ne - window), ne)))
+                else:
+                    row.append("—")
+            out.append("| " + " | ".join(row) + " |")
+        out.append("")
+    return "\n".join(out)
+
+
+def table_shift_scale_flat(runs, window):
+    """One row per exact config (seeds pooled), sorted by Recall descending.
+
+    Lets you eyeball the best scale/shift combos directly across all min/max.
+    """
+    groups, _, _ = group_shift_scale(runs)
+    if not groups:
+        return ""
+    metrics3 = ["valid/recall", "valid/ndcg", "valid/hitrate"]
+    rows = []
+    for (tmin, tmax, lr), cells in groups.items():
+        for (shift, scale), cl in cells.items():
+            finals = last_window_finals(cl, metrics3, window)
+            rows.append((tmin, tmax, lr, shift, scale, len(cl), finals))
+    rows.sort(key=lambda r: r[6]["valid/recall"][0], reverse=True)
+
+    out = ["## All configs by scale & shift (last window, sorted by Recall)", ""]
+    out.append("| min | max | shift | scale | lr | n | Recall | NDCG | Hitrate |")
+    out.append("|---|---|---|---|---|---|---|---|---|")
+    best = rows[0][6]["valid/recall"][0] if rows else None
+    for tmin, tmax, lr, shift, scale, n, finals in rows:
+        recall = fmt(*finals["valid/recall"])
+        if best is not None and finals["valid/recall"][0] == best:
+            recall = f"**{recall}**"
+        out.append(
+            f"| {tmin} | {tmax} | {shift:g} | {scale:g} | {lr} | {n} | "
+            f"{recall} | {fmt(*finals['valid/ndcg'])} | {fmt(*finals['valid/hitrate'])} |")
+    out.append("")
+    return "\n".join(out)
+
+
 def main():
     args = parse_args()
     fine = [int(x) for x in args.fine_steps.split(",")]
@@ -272,6 +437,12 @@ def main():
     groups, base_order, lr_order = group_runs(runs)
 
     print(f"# {args.experiment}\n")
+    # Scale × shift comparison (only emitted when the runs carry shift/scale).
+    shift_scale_pivot = table_shift_scale_pivot(runs, args.window)
+    if shift_scale_pivot:
+        print(shift_scale_pivot)
+        print(table_shift_scale_flat(runs, args.window))
+    print(table_epochs_to_max(groups, base_order, lr_order))
     print(table_windowed(groups, base_order, lr_order, args.window))
     print(table_final_comparison(groups, base_order, lr_order, args.window))
     baseline, baseline_desc = load_baseline(
@@ -280,6 +451,8 @@ def main():
                             baseline, baseline_desc, args.window))
     print(table_prefix(groups, base_order, lr_order, fine,
                        "Prefix max recall, fine steps (Δ% vs previous)"))
+    print(table_window_mean(groups, base_order, lr_order, fine,
+                            "Window mean recall, fine steps (Δ% vs previous)"))
     print(table_prefix(groups, base_order, lr_order, coarse,
                        "Prefix max recall, coarse steps (Δ% vs previous)"))
 

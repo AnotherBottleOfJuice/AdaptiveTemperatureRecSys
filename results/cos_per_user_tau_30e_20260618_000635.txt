@@ -1,0 +1,186 @@
+Sweep: 6 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.055]  (seed=42)
+hitrate: 0.3430
+recall: 0.1221
+ndcg: 0.0486
+coverage: 0.2537
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.055]  (seed=123)
+hitrate: 0.3394
+recall: 0.1192
+ndcg: 0.0482
+coverage: 0.2569
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.055]  (seed=456)
+hitrate: 0.2866
+recall: 0.0982
+ndcg: 0.0380
+coverage: 0.2059
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.06]  (seed=42)
+hitrate: 0.3121
+recall: 0.1081
+ndcg: 0.0416
+coverage: 0.2402
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.06]  (seed=123)
+hitrate: 0.3332
+recall: 0.1171
+ndcg: 0.0473
+coverage: 0.2515
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.06]  (seed=456)
+hitrate: 0.3111
+recall: 0.1082
+ndcg: 0.0426
+coverage: 0.2325
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.065]  (seed=42)
+hitrate: 0.3234
+recall: 0.1122
+ndcg: 0.0439
+coverage: 0.2440
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.065]  (seed=123)
+hitrate: 0.3205
+recall: 0.1112
+ndcg: 0.0442
+coverage: 0.2459
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.065]  (seed=456)
+hitrate: 0.3236
+recall: 0.1133
+ndcg: 0.0454
+coverage: 0.2353
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.055]  (seed=42)
+hitrate: 0.3132
+recall: 0.1108
+ndcg: 0.0430
+coverage: 0.2240
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.055]  (seed=123)
+hitrate: 0.3275
+recall: 0.1164
+ndcg: 0.0466
+coverage: 0.2422
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.055]  (seed=456)
+hitrate: 0.3371
+recall: 0.1199
+ndcg: 0.0477
+coverage: 0.2351
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.06]  (seed=42)
+hitrate: 0.3120
+recall: 0.1102
+ndcg: 0.0421
+coverage: 0.2335
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.06]  (seed=123)
+hitrate: 0.3396
+recall: 0.1188
+ndcg: 0.0477
+coverage: 0.2523
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.06]  (seed=456)
+hitrate: 0.3278
+recall: 0.1148
+ndcg: 0.0464
+coverage: 0.2479
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.065]  (seed=42)
+hitrate: 0.3325
+recall: 0.1173
+ndcg: 0.0460
+coverage: 0.2489
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.065]  (seed=123)
+hitrate: 0.3452
+recall: 0.1222
+ndcg: 0.0494
+coverage: 0.2459
+--------------------------------
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.065]  (seed=456)
+hitrate: 0.3518
+recall: 0.1259
+ndcg: 0.0505
+coverage: 0.2634
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.055]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.04
+tau.json_args.tau_max: 0.055
+hitrate: 0.3230 ± 0.0316
+recall: 0.1132 ± 0.0131
+ndcg: 0.0449 ± 0.0060
+coverage: 0.2388 ± 0.0285
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.06]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.04
+tau.json_args.tau_max: 0.06
+hitrate: 0.3188 ± 0.0125
+recall: 0.1112 ± 0.0052
+ndcg: 0.0439 ± 0.0030
+coverage: 0.2414 ± 0.0096
+--------------------------------
+Experiment name: CosPerUser[min=0.04,max=0.065]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.04
+tau.json_args.tau_max: 0.065
+hitrate: 0.3225 ± 0.0018
+recall: 0.1122 ± 0.0011
+ndcg: 0.0445 ± 0.0008
+coverage: 0.2417 ± 0.0057
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.055]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.045
+tau.json_args.tau_max: 0.055
+hitrate: 0.3259 ± 0.0120
+recall: 0.1157 ± 0.0046
+ndcg: 0.0458 ± 0.0025
+coverage: 0.2338 ± 0.0092
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.06]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.045
+tau.json_args.tau_max: 0.06
+hitrate: 0.3265 ± 0.0138
+recall: 0.1146 ± 0.0043
+ndcg: 0.0454 ± 0.0029
+coverage: 0.2445 ± 0.0099
+--------------------------------
+Experiment name: CosPerUser[min=0.045,max=0.065]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.045
+tau.json_args.tau_max: 0.065
+hitrate: 0.3432 ± 0.0098
+recall: 0.1218 ± 0.0043
+ndcg: 0.0486 ± 0.0024
+coverage: 0.2528 ± 0.0093
+--------------------------------
