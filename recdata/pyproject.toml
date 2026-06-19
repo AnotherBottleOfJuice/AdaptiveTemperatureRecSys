@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "recdata"
+version = "0.1.0"
+dependencies = []
+
+[tool.setuptools]
+packages = [
+    "recdata",
+    "recdata.recdata",
+    "recdata.recdata.yandex",
+    "recdata.recdata.amazon",
+]
+package-dir = {"recdata" = "."}

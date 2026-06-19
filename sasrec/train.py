@@ -9,12 +9,13 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 import os
 
-from yambdadataset import (
+from recdata import (
     TrainingDataset,
     TestDataset,
+    SequentialDataset,
+    build_dataset,
     get_train_histories,
     get_train_events,
-    get_general_data,
     get_item_to_token,
     get_test_histories,
     get_item_to_freq,
@@ -284,16 +285,17 @@ class ExperimentConfig:
         is_cosine_similarity: bool
 
     @dataclass
+    class DatasetConfig:
+        class_name: str
+        json_args: dict[str, object] = field(default_factory=dict)
+
+    @dataclass
     class DataConfig:
         vocab_size: int
         max_seq_len: int
         bos: int
-        path_interactions: str
-        path_embeddings: str
-        path_artists: str
-        core_min_interaction_per_user: int
-        test_interval_seconds: int
         max_train_events_per_user: int
+        dataset: "ExperimentConfig.DatasetConfig"
 
     @dataclass
     class TauConfig:
@@ -350,6 +352,11 @@ class ExperimentConfig:
     evaluator: EvaluatorConfig
     config_name: str | None = None
 
+    def build_dataset(self) -> SequentialDataset:
+        return build_dataset(
+            self.data.dataset.class_name, **self.data.dataset.json_args
+        )
+
     def build_train_dataset(self, train_histories) -> TrainingDataset:
         return TrainingDataset(
             train_histories,
@@ -402,13 +409,8 @@ class ExperimentConfig:
 
 
 def prepare_data(config: ExperimentConfig):
-    train, test, embeddings, artists, test_targets = get_general_data(
-        path_interactions=config.data.path_interactions,
-        path_embeddings=config.data.path_embeddings,
-        path_artists=config.data.path_artists,
-        core_min_interaction_per_user=config.data.core_min_interaction_per_user,
-        test_interval_seconds=config.data.test_interval_seconds,
-    )
+    train, test, test_targets = config.build_dataset().load()
+
     item_to_token = get_item_to_token(train, vocab_size=config.data.vocab_size)
     item_to_freq = get_item_to_freq(train)
 
