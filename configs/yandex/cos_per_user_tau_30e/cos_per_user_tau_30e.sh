@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/cos_per_user_tau_30e.yaml
+python main.py configs/yandex/cos_per_user_tau_30e/cos_per_user_tau_30e.yaml

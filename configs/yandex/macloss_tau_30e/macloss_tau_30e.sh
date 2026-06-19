@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=param_tau_30e
+#SBATCH --job-name=macloss_tau_30e
 #SBATCH --account=proj_1876
 #SBATCH --time=20:00:00
 #SBATCH --nodes=1
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/yandex/param_tau_30e/param_tau_30e.yaml
+python main.py configs/yandex/macloss_tau_30e/macloss_tau_30e.yaml
