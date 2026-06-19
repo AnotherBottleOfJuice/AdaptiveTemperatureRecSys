@@ -219,3 +219,7 @@ interactions.parquet
 dataset.zip
 dataset/dataset.zip
 model/model.zip
+
+
+# Cluster output files
+*.out
