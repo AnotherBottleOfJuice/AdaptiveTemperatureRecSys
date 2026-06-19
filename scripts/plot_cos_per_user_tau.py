@@ -4,6 +4,8 @@ tau = (1 + cos(pi*(logit+1))) * (tau_max - tau_min) / 2 + tau_min
 (see sasrec/model/model/tau.py :: CosPerUserTau)
 """
 
+import os
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -63,7 +65,8 @@ ax_zoom.set_title("Operating range only\n(smooth & monotonic: negatives sharp, p
 ax_zoom.legend(fontsize=8)
 ax_zoom.grid(alpha=0.3)
 
-out = "results/cos_per_user_tau_curve.png"
+out = "plots/cos_per_user_tau_curve.png"
+os.makedirs("plots", exist_ok=True)
 fig.tight_layout()
 fig.savefig(out, dpi=150)
 print(f"saved {out}")

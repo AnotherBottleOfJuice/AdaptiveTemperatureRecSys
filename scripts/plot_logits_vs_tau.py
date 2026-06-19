@@ -156,7 +156,7 @@ def main():
 
     fig.suptitle(f"{raw['tau']['class_name']}  —  {CONFIG.name}  (operating range)", fontsize=13)
 
-    out = Path("results") / f"{CONFIG.stem}_logits_vs_tau.png"
+    out = Path("plots") / f"{CONFIG.stem}_logits_vs_tau.png"
     out.parent.mkdir(exist_ok=True)
     fig.tight_layout(rect=(0, 0.04, 1, 1))
     fig.savefig(out, dpi=150, bbox_inches="tight")
