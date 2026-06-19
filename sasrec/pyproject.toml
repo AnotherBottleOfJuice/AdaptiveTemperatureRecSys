@@ -7,7 +7,7 @@ name = "sasrec"
 version = "0.1.0"
 dependencies = [
     "model",
-    "yambdadataset"
+    "recdata"
 ]
 
 [tool.setuptools]

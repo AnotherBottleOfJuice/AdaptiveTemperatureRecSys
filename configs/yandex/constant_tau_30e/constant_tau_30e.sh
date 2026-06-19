@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=linear_tau_30e
+#SBATCH --job-name=constant_tau_30e
 #SBATCH --account=proj_1876
 #SBATCH --time=15:00:00
 #SBATCH --nodes=1
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/linear_tau_30e.yaml
+python main.py configs/yandex/constant_tau_30e/constant_tau_30e.yaml

@@ -35,7 +35,10 @@ def _set_nested(d: dict, dotted_key: str, value) -> None:
 def _build_experiment_config(raw: dict, config_name: str) -> ExperimentConfig:
     return ExperimentConfig(
         graph=ExperimentConfig.GraphConfig(**raw["graph"]),
-        data=ExperimentConfig.DataConfig(**raw["data"]),
+        data=ExperimentConfig.DataConfig(
+            **{k: v for k, v in raw["data"].items() if k != "dataset"},
+            dataset=ExperimentConfig.DatasetConfig(**raw["data"]["dataset"]),
+        ),
         tau=ExperimentConfig.TauConfig(**raw["tau"]),
         training_dataset=ExperimentConfig.TrainingDatasetConfig(**raw["training_dataset"]),
         test_dataset=ExperimentConfig.TestDatasetConfig(**raw["test_dataset"]),

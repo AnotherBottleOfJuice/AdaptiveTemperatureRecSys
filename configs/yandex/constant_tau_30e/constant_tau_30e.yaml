@@ -1,9 +1,9 @@
 sweep:
   seeds: [42, 123, 456]
   grid:
+    tau.json_args.initial_tau: [0.035, 0.04, 0.045]
     optimizer.json_args.lr: [2.0e-3, 3.0e-3]
-    tau.json_args.tau_min: [0.03, 0.035]
-    tau.json_args.tau_max: [0.055, 0.060]
+    
 
 graph:
   n_layers: 4
@@ -17,21 +17,24 @@ data:
   vocab_size: 157162
   max_seq_len: 100
   bos: 0
-  path_interactions: data/interactions.parquet
-  path_embeddings: data/embeddings.parquet
-  path_artists: data/artists.parquet
-  core_min_interaction_per_user: 5
-  test_interval_seconds: 604800  # 7 days
   max_train_events_per_user: 100
+  dataset:
+    class_name: YambdaDataset
+    json_args:
+      path_interactions: data/interactions.parquet
+      path_embeddings: data/embeddings.parquet
+      path_artists: data/artists.parquet
+      core_min_interaction_per_item: 5
+      test_interval_seconds: 604800  # 7 days
 
 tau:
-  class_name: CosTau
+  class_name: ConstantTau
   json_args:
-    initial_tau: null
-    tau_min: 0.03
-    tau_max: 0.07
-    num_epochs: 30
-    num_tokens_per_epoch: 4019032
+    initial_tau: 0.35
+    tau_min: null
+    tau_max: null
+    num_epochs: null
+    num_tokens_per_epoch: null
 
 training_dataset:
   batch_size: 128
@@ -39,8 +42,8 @@ training_dataset:
   chunk_rows: 64000
   shuffle: true
   seed: 42
-  uniform_negative_items: 22000
-  in_batch_negative_items: 8000
+  uniform_negative_items: 24000
+  in_batch_negative_items: 6000
 
 test_dataset:
   batch_size: 32
@@ -53,8 +56,10 @@ optimizer:
     weight_decay: 1.0e-5
 
 scheduler:
-  class_name: null
-  json_args: {}
+  class_name: CosineAnnealingLR
+  json_args:
+    T_max: 30
+    eta_min: 1.0e-3
 
 training:
   num_epochs: 30
