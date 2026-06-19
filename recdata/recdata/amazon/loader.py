@@ -33,6 +33,10 @@ def get_amazon_data(
         pl.col("len") > core_min_interaction_per_item
     ).drop("len")
 
+    interactions = interactions.with_columns(
+        pl.col("item_id").rank("dense").cast(pl.Int64).alias("item_id")
+    )
+
     cutoff = window_end - test_interval_seconds * _MS_PER_SECOND
 
     train = interactions.filter(pl.col("timestamp") <= cutoff)
