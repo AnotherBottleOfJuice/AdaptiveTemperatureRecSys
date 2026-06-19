@@ -2,8 +2,11 @@ sweep:
   seeds: [42, 123, 456]
   grid:
     optimizer.json_args.lr: [3.0e-3]
-    tau.json_args.base_threshold: [0.2, 0.215, 0.23]
-    tau.json_args.linear_coeff: [-0.1, -0.15, -0.2]
+    tau.json_args.shift: [-0.3, -0.25]
+    tau.json_args.scale: [0.3, 0.25, 0.4]
+    tau.json_args.tau_max: [0.06]
+    tau.json_args.tau_min: [0.035, 0.04]
+
 
 graph:
   n_layers: 4
@@ -17,23 +20,26 @@ data:
   vocab_size: 157162
   max_seq_len: 100
   bos: 0
-  path_interactions: data/interactions.parquet
-  path_embeddings: data/embeddings.parquet
-  path_artists: data/artists.parquet
-  core_min_interaction_per_user: 5
-  test_interval_seconds: 604800  # 7 days
   max_train_events_per_user: 100
+  dataset:
+    class_name: YambdaDataset
+    json_args:
+      path_interactions: data/interactions.parquet
+      path_embeddings: data/embeddings.parquet
+      path_artists: data/artists.parquet
+      core_min_interaction_per_item: 5
+      test_interval_seconds: 604800  # 7 days
 
 tau:
-  class_name: MACLossTau
+  class_name: ShiftedCosPerUserTau
   json_args:
-    initial_tau: 0.0525
+    initial_tau: 0.45
     tau_min: 0.04
-    tau_max: 0.065
+    tau_max: 0.06
     num_epochs: 30
     num_tokens_per_epoch: 4019032
-    base_threshold: 0.215
-    linear_coeff: -0.15
+    shift: -0.25
+    scale: 0.2
 
 training_dataset:
   batch_size: 128
