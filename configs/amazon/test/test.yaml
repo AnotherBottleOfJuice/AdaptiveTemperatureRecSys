@@ -12,7 +12,7 @@ graph:
   is_cosine_similarity: true
 
 data:
-  vocab_size: 157225  # distinct items with >5 interactions in the 2021-22 window (verified on full data)
+  vocab_size: 156922
   max_seq_len: 100
   bos: 0
   max_train_events_per_user: 100

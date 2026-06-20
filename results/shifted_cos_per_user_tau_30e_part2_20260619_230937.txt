@@ -175,3 +175,216 @@ recall: 0.1236
 ndcg: 0.0479
 coverage: 0.2552
 --------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.25]  (seed=123)
+hitrate: 0.3506
+recall: 0.1223
+ndcg: 0.0493
+coverage: 0.2529
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.25]  (seed=456)
+hitrate: 0.3374
+recall: 0.1179
+ndcg: 0.0466
+coverage: 0.2438
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.25]  (seed=42)
+hitrate: 0.3424
+recall: 0.1194
+ndcg: 0.0467
+coverage: 0.2238
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.25]  (seed=123)
+hitrate: 0.3547
+recall: 0.1243
+ndcg: 0.0494
+coverage: 0.2768
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.25]  (seed=456)
+hitrate: 0.3451
+recall: 0.1209
+ndcg: 0.0475
+coverage: 0.2235
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.4]  (seed=42)
+hitrate: 0.3473
+recall: 0.1208
+ndcg: 0.0469
+coverage: 0.2445
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.4]  (seed=123)
+hitrate: 0.3549
+recall: 0.1227
+ndcg: 0.0494
+coverage: 0.2507
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.4]  (seed=456)
+hitrate: 0.3523
+recall: 0.1225
+ndcg: 0.0489
+coverage: 0.2564
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.4]  (seed=42)
+hitrate: 0.3334
+recall: 0.1167
+ndcg: 0.0454
+coverage: 0.2389
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.4]  (seed=123)
+hitrate: 0.3516
+recall: 0.1233
+ndcg: 0.0496
+coverage: 0.2670
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.4]  (seed=456)
+hitrate: 0.3459
+recall: 0.1172
+ndcg: 0.0471
+coverage: 0.3819
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.3]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.3
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3501 ± 0.0109
+recall: 0.1210 ± 0.0029
+ndcg: 0.0476 ± 0.0022
+coverage: 0.2873 ± 0.0243
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.3]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.3
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3512 ± 0.0148
+recall: 0.1227 ± 0.0040
+ndcg: 0.0481 ± 0.0023
+coverage: 0.2674 ± 0.0633
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.25]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.25
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3544 ± 0.0066
+recall: 0.1233 ± 0.0012
+ndcg: 0.0487 ± 0.0008
+coverage: 0.3186 ± 0.0375
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.25]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.25
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3531 ± 0.0121
+recall: 0.1215 ± 0.0067
+ndcg: 0.0479 ± 0.0024
+coverage: 0.3105 ± 0.0449
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.4]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.4
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3509 ± 0.0107
+recall: 0.1212 ± 0.0032
+ndcg: 0.0479 ± 0.0014
+coverage: 0.2538 ± 0.0464
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.4]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.3
+tau.json_args.scale: 0.4
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3472 ± 0.0114
+recall: 0.1214 ± 0.0036
+ndcg: 0.0477 ± 0.0021
+coverage: 0.2323 ± 0.0325
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.3]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.3
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3473 ± 0.0024
+recall: 0.1211 ± 0.0009
+ndcg: 0.0477 ± 0.0009
+coverage: 0.2329 ± 0.0070
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.3]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.3
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3367 ± 0.0127
+recall: 0.1185 ± 0.0043
+ndcg: 0.0467 ± 0.0026
+coverage: 0.2118 ± 0.0264
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.25]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.25
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3465 ± 0.0079
+recall: 0.1213 ± 0.0030
+ndcg: 0.0479 ± 0.0013
+coverage: 0.2506 ± 0.0061
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.25]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.25
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3474 ± 0.0065
+recall: 0.1215 ± 0.0025
+ndcg: 0.0479 ± 0.0014
+coverage: 0.2413 ± 0.0307
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.4]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.4
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.035
+hitrate: 0.3515 ± 0.0039
+recall: 0.1220 ± 0.0011
+ndcg: 0.0484 ± 0.0013
+coverage: 0.2506 ± 0.0059
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.4]
+optimizer.json_args.lr: 0.003
+tau.json_args.shift: -0.25
+tau.json_args.scale: 0.4
+tau.json_args.tau_max: 0.06
+tau.json_args.tau_min: 0.04
+hitrate: 0.3436 ± 0.0093
+recall: 0.1191 ± 0.0037
+ndcg: 0.0474 ± 0.0021
+coverage: 0.2959 ± 0.0758
+--------------------------------
