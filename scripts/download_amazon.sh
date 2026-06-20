@@ -11,8 +11,8 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."   # repo root
 
-# module load Python
-# source activate adaptivetemperaturerecsys
+module load Python
+source activate adaptivetemperaturerecsys
 
 PYTHON="${PYTHON:-python}"
 mkdir -p data/amazon_beauty

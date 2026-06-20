@@ -223,3 +223,6 @@ model/model.zip
 
 # Cluster output files
 *.out
+
+# Model input
+data/

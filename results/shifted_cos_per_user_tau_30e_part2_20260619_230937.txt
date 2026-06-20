@@ -1,0 +1,177 @@
+Sweep: 12 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.3]  (seed=42)
+hitrate: 0.3393
+recall: 0.1178
+ndcg: 0.0452
+coverage: 0.2631
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.3]  (seed=123)
+hitrate: 0.3499
+recall: 0.1218
+ndcg: 0.0482
+coverage: 0.2871
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.3]  (seed=456)
+hitrate: 0.3611
+recall: 0.1234
+ndcg: 0.0494
+coverage: 0.3118
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.3]  (seed=42)
+hitrate: 0.3380
+recall: 0.1188
+ndcg: 0.0457
+coverage: 0.2193
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.3]  (seed=123)
+hitrate: 0.3672
+recall: 0.1269
+ndcg: 0.0501
+coverage: 0.3391
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.3]  (seed=456)
+hitrate: 0.3485
+recall: 0.1223
+ndcg: 0.0485
+coverage: 0.2436
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.25]  (seed=42)
+hitrate: 0.3483
+recall: 0.1222
+ndcg: 0.0478
+coverage: 0.2873
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.25]  (seed=123)
+hitrate: 0.3614
+recall: 0.1246
+ndcg: 0.0494
+coverage: 0.3601
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.25]  (seed=456)
+hitrate: 0.3535
+recall: 0.1232
+ndcg: 0.0488
+coverage: 0.3083
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.25]  (seed=42)
+hitrate: 0.3408
+recall: 0.1138
+ndcg: 0.0453
+coverage: 0.3569
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.25]  (seed=123)
+hitrate: 0.3650
+recall: 0.1264
+ndcg: 0.0499
+coverage: 0.3072
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.25]  (seed=456)
+hitrate: 0.3534
+recall: 0.1243
+ndcg: 0.0485
+coverage: 0.2673
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.4]  (seed=42)
+hitrate: 0.3446
+recall: 0.1196
+ndcg: 0.0469
+coverage: 0.2294
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.4]  (seed=123)
+hitrate: 0.3633
+recall: 0.1249
+ndcg: 0.0495
+coverage: 0.3073
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.3,scale=0.4]  (seed=456)
+hitrate: 0.3448
+recall: 0.1191
+ndcg: 0.0473
+coverage: 0.2247
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.4]  (seed=42)
+hitrate: 0.3444
+recall: 0.1207
+ndcg: 0.0468
+coverage: 0.2132
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.4]  (seed=123)
+hitrate: 0.3598
+recall: 0.1252
+ndcg: 0.0501
+coverage: 0.2698
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.3,scale=0.4]  (seed=456)
+hitrate: 0.3375
+recall: 0.1182
+ndcg: 0.0462
+coverage: 0.2140
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.3]  (seed=42)
+hitrate: 0.3458
+recall: 0.1202
+ndcg: 0.0469
+coverage: 0.2316
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.3]  (seed=123)
+hitrate: 0.3501
+recall: 0.1220
+ndcg: 0.0487
+coverage: 0.2405
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.3]  (seed=456)
+hitrate: 0.3461
+recall: 0.1211
+ndcg: 0.0476
+coverage: 0.2266
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.3]  (seed=42)
+hitrate: 0.3276
+recall: 0.1153
+ndcg: 0.0445
+coverage: 0.1898
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.3]  (seed=123)
+hitrate: 0.3512
+recall: 0.1234
+ndcg: 0.0495
+coverage: 0.2411
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.04,max=0.06,shift=-0.25,scale=0.3]  (seed=456)
+hitrate: 0.3313
+recall: 0.1166
+ndcg: 0.0460
+coverage: 0.2046
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.035,max=0.06,shift=-0.25,scale=0.25]  (seed=42)
+hitrate: 0.3514
+recall: 0.1236
+ndcg: 0.0479
+coverage: 0.2552
+--------------------------------

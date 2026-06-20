@@ -1,0 +1,16 @@
+Sweep: 6 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Constant[value=0.01]  (seed=42)
+hitrate: 0.0286
+recall: 0.0194
+ndcg: 0.0061
+coverage: 0.7179
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.01]  (seed=123)
+hitrate: 0.0265
+recall: 0.0173
+ndcg: 0.0054
+coverage: 0.7582
+--------------------------------
