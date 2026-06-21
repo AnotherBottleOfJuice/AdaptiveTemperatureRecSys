@@ -1,0 +1,122 @@
+Sweep: 4 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Constant[value=0.7]  (seed=42)
+hitrate: 0.0334
+recall: 0.0253
+ndcg: 0.0060
+coverage: 0.0013
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.7]  (seed=123)
+hitrate: 0.0336
+recall: 0.0255
+ndcg: 0.0061
+coverage: 0.0013
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.7]  (seed=456)
+hitrate: 0.0329
+recall: 0.0247
+ndcg: 0.0058
+coverage: 0.0013
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.8]  (seed=42)
+hitrate: 0.0295
+recall: 0.0213
+ndcg: 0.0046
+coverage: 0.0015
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.8]  (seed=123)
+hitrate: 0.0303
+recall: 0.0222
+ndcg: 0.0049
+coverage: 0.0013
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.8]  (seed=456)
+hitrate: 0.0298
+recall: 0.0216
+ndcg: 0.0047
+coverage: 0.0014
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.9]  (seed=42)
+hitrate: 0.0280
+recall: 0.0199
+ndcg: 0.0042
+coverage: 0.0014
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.9]  (seed=123)
+hitrate: 0.0302
+recall: 0.0217
+ndcg: 0.0046
+coverage: 0.0021
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.9]  (seed=456)
+hitrate: 0.0290
+recall: 0.0206
+ndcg: 0.0043
+coverage: 0.0014
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=1]  (seed=42)
+hitrate: 0.0224
+recall: 0.0148
+ndcg: 0.0032
+coverage: 0.0015
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=1]  (seed=123)
+hitrate: 0.0281
+recall: 0.0201
+ndcg: 0.0042
+coverage: 0.0025
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=1]  (seed=456)
+hitrate: 0.0239
+recall: 0.0162
+ndcg: 0.0035
+coverage: 0.0014
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Constant[value=0.7]
+tau.json_args.initial_tau: 0.7
+optimizer.json_args.lr: 0.003
+hitrate: 0.0333 ± 0.0003
+recall: 0.0251 ± 0.0004
+ndcg: 0.0060 ± 0.0001
+coverage: 0.0013 ± 0.0000
+--------------------------------
+Experiment name: Constant[value=0.8]
+tau.json_args.initial_tau: 0.8
+optimizer.json_args.lr: 0.003
+hitrate: 0.0298 ± 0.0004
+recall: 0.0217 ± 0.0005
+ndcg: 0.0047 ± 0.0001
+coverage: 0.0014 ± 0.0001
+--------------------------------
+Experiment name: Constant[value=0.9]
+tau.json_args.initial_tau: 0.9
+optimizer.json_args.lr: 0.003
+hitrate: 0.0290 ± 0.0011
+recall: 0.0207 ± 0.0009
+ndcg: 0.0044 ± 0.0002
+coverage: 0.0017 ± 0.0004
+--------------------------------
+Experiment name: Constant[value=1]
+tau.json_args.initial_tau: 1.0
+optimizer.json_args.lr: 0.003
+hitrate: 0.0248 ± 0.0029
+recall: 0.0170 ± 0.0027
+ndcg: 0.0036 ± 0.0005
+coverage: 0.0018 ± 0.0006
+--------------------------------
