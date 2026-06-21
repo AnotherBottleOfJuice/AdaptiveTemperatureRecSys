@@ -1,0 +1,65 @@
+Sweep: 9 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.35]  (seed=42)
+hitrate: 0.3469
+recall: 0.1236
+ndcg: 0.0482
+coverage: 0.2577
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.35]  (seed=123)
+hitrate: 0.3303
+recall: 0.1166
+ndcg: 0.0458
+coverage: 0.2433
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.35]  (seed=456)
+hitrate: 0.3517
+recall: 0.1252
+ndcg: 0.0494
+coverage: 0.2655
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.4]  (seed=42)
+hitrate: 0.3586
+recall: 0.1269
+ndcg: 0.0502
+coverage: 0.2730
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.4]  (seed=123)
+hitrate: 0.3635
+recall: 0.1286
+ndcg: 0.0515
+coverage: 0.3026
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.4]  (seed=456)
+hitrate: 0.3582
+recall: 0.1263
+ndcg: 0.0504
+coverage: 0.2762
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.45]  (seed=42)
+hitrate: 0.3378
+recall: 0.1192
+ndcg: 0.0457
+coverage: 0.2418
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.45]  (seed=123)
+hitrate: 0.3503
+recall: 0.1226
+ndcg: 0.0477
+coverage: 0.3088
+--------------------------------
+--------------------------------
+Experiment name: ShiftedCosPerUser[min=0.045,max=0.065,shift=-0.5,scale=0.45]  (seed=456)
+hitrate: 0.3430
+recall: 0.1208
+ndcg: 0.0475
+coverage: 0.2431
+--------------------------------

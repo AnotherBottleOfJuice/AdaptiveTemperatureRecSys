@@ -35,3 +35,59 @@ recall: 0.0308
 ndcg: 0.0091
 coverage: 0.1251
 --------------------------------
+--------------------------------
+Experiment name: Constant[value=0.01]  (seed=456)
+hitrate: 0.0385
+recall: 0.0261
+ndcg: 0.0083
+coverage: 0.6047
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=42)
+hitrate: 0.0466
+recall: 0.0344
+ndcg: 0.0111
+coverage: 0.4110
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=123)
+hitrate: 0.0483
+recall: 0.0344
+ndcg: 0.0111
+coverage: 0.4664
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=456)
+hitrate: 0.0473
+recall: 0.0346
+ndcg: 0.0110
+coverage: 0.4467
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=42)
+hitrate: 0.0448
+recall: 0.0297
+ndcg: 0.0088
+coverage: 0.1062
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=123)
+hitrate: 0.0482
+recall: 0.0329
+ndcg: 0.0104
+coverage: 0.1976
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.05]  (seed=456)
+hitrate: 0.0488
+recall: 0.0356
+ndcg: 0.0114
+coverage: 0.4521
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.25]  (seed=42)
+hitrate: 0.0345
+recall: 0.0276
+ndcg: 0.0080
+coverage: 0.0017
+--------------------------------
