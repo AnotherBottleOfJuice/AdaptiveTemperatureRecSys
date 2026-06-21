@@ -85,7 +85,10 @@ def config_label(params):
     except (ValueError, SyntaxError):
         targs = {}
 
-    if tau_cls == "LinearTau" or (targs.get("tau_min") is not None):
+    if tau_cls == "MACLossTau":
+        base = (f"bt={targs.get('base_threshold')}, "
+                f"lc={targs.get('linear_coeff')}")
+    elif tau_cls == "LinearTau" or (targs.get("tau_min") is not None):
         base = f"min={targs.get('tau_min')}, max={targs.get('tau_max')}"
         # shift/scale (ShiftedCosPerUserTau & friends) are part of the config
         # identity: without them every shift/scale combo collapses into one group.
@@ -425,6 +428,62 @@ def table_shift_scale_flat(runs, window):
     return "\n".join(out)
 
 
+# ---------------------------------------------------------------- base × linear (MACLoss)
+def group_base_linear(runs):
+    """{(tau_min, tau_max, lr): {(base_threshold, linear_coeff): [curve_dicts]}}.
+
+    MACLossTau sweeps base_threshold × linear_coeff; each leaf list holds the
+    per-seed curves for one exact config, so seeds are the only thing pooled.
+    Returns ({}, [], []) when no MACLossTau runs carry both params.
+    """
+    groups = defaultdict(lambda: defaultdict(list))
+    thresholds, coeffs = set(), set()
+    for r in runs.values():
+        if r["params"].get("tau_class_name") != "MACLossTau":
+            continue
+        t = tau_params(r["params"])
+        bt, lc = t.get("base_threshold"), t.get("linear_coeff")
+        if bt is None or lc is None:
+            continue
+        lr = r["params"].get("learning_rate", "?")
+        groups[(t.get("tau_min"), t.get("tau_max"), lr)][(bt, lc)].append(
+            r["curves"])
+        thresholds.add(bt)
+        coeffs.add(lc)
+    return groups, sorted(thresholds), sorted(coeffs)
+
+
+def table_base_linear_pivot(runs, window, metric="valid/recall"):
+    """Pivot of (mean±std over seeds) per (base_threshold, linear_coeff).
+
+    Rows are base_threshold, columns are linear_coeff, one block per min/max/lr.
+    """
+    groups, thresholds, coeffs = group_base_linear(runs)
+    if not groups:
+        return ""
+    name = metric.split("/")[-1].capitalize()
+    out = [f"## {name} by base_threshold × linear_coeff (mean±std over seeds)", ""]
+    for (tmin, tmax, lr) in sorted(groups):
+        cells = groups[(tmin, tmax, lr)]
+        out.append(f"### min={tmin}, max={tmax}, lr={lr}")
+        out.append("")
+        out.append("| base_threshold \\ linear_coeff | "
+                   + " | ".join(f"{c:g}" for c in coeffs) + " |")
+        out.append("|" + "---|" * (len(coeffs) + 1))
+        for bt in thresholds:
+            row = [f"{bt:g}"]
+            for lc in coeffs:
+                cl = cells.get((bt, lc))
+                if cl:
+                    ne = max_epochs(cl)
+                    row.append(fmt(*agg(cl, metric, max(0, ne - window), ne)))
+                else:
+                    row.append("—")
+            out.append("| " + " | ".join(row) + " |")
+        out.append("")
+    return "\n".join(out)
+
+
 def main():
     args = parse_args()
     fine = [int(x) for x in args.fine_steps.split(",")]
@@ -442,6 +501,10 @@ def main():
     if shift_scale_pivot:
         print(shift_scale_pivot)
         print(table_shift_scale_flat(runs, args.window))
+    # base_threshold × linear_coeff pivot (only emitted for MACLossTau runs).
+    base_linear_pivot = table_base_linear_pivot(runs, args.window)
+    if base_linear_pivot:
+        print(base_linear_pivot)
     print(table_epochs_to_max(groups, base_order, lr_order))
     print(table_windowed(groups, base_order, lr_order, args.window))
     print(table_final_comparison(groups, base_order, lr_order, args.window))
