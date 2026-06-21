@@ -1,9 +1,8 @@
 sweep:
   seeds: [42, 123, 456]
   grid:
+    tau.json_args.initial_tau: [0.05, 0.055, 0.06, 0.065]
     optimizer.json_args.lr: [2.0e-3, 3.0e-3]
-    tau.json_args.tau_min: [0.04, 0.045]
-    tau.json_args.tau_max: [0.055, 0.060]
 
 graph:
   n_layers: 4
@@ -28,13 +27,13 @@ data:
       window_end: 1672531200000     # 2023-01-01 (ms)
 
 tau:
-  class_name: CosTau
+  class_name: ConstantTau
   json_args:
-    initial_tau: null
-    tau_min: 0.04
-    tau_max: 0.06
-    num_epochs: 30
-    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed (7142400 * 30 = 214272000)
+    initial_tau: 0.04
+    tau_min: null
+    tau_max: null
+    num_epochs: null
+    num_tokens_per_epoch: null
 
 training_dataset:
   batch_size: 128
@@ -62,7 +61,7 @@ scheduler:
     eta_min: 1.0e-3
 
 training:
-  num_epochs: 30
+  num_epochs: 45
   grad_clip: 1.0
   eval_every: 1
   logging: true

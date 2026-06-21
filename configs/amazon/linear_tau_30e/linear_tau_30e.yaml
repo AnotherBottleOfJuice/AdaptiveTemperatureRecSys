@@ -2,7 +2,7 @@ sweep:
   seeds: [42, 123, 456]
   grid:
     optimizer.json_args.lr: [2.0e-3, 3.0e-3]
-    tau.json_args.tau_min: [0.035, 0.040]
+    tau.json_args.tau_min: [0.04, 0.045]
     tau.json_args.tau_max: [0.055, 0.060]
 
 graph:
@@ -31,10 +31,10 @@ tau:
   class_name: LinearTau
   json_args:
     initial_tau: null
-    tau_min: 0.03
+    tau_min: 0.04
     tau_max: 0.06
     num_epochs: 30
-    num_tokens_per_epoch: null  # FIXME: set to amazon's real tokens/epoch (no amazon config records it)
+    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed (7142400 * 30 = 214272000)
 
 training_dataset:
   batch_size: 128

@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 """Generate the markdown experiment report (the four tables) from mlruns/mlflow.db.
 
-Tables produced, given an experiment name:
+Tables produced, given one or more experiment names:
   1. Windowed stats   - max metric per epoch window (default 10), all metrics.
-  2. Final comparison - last window, Recall/NDCG/Hitrate with Delta% vs the
-                        sibling run that shares everything except the learning rate.
+  2. Final results    - last window, Recall/NDCG/Hitrate per config (no comparison).
   3. Prefix max (fine)- running-max recall at several epoch checkpoints, Delta% vs
                         the previous checkpoint (default step 5).
   4. Prefix max (E15) - running-max recall at E<=15 and E<=30, Delta% between them.
@@ -12,7 +11,9 @@ Tables produced, given an experiment name:
 Usage:
     python scripts/generate_report.py linear_tau_30e
     python scripts/generate_report.py constant_tau_30e --db mlruns/mlflow.db
-    python scripts/generate_report.py linear_tau_30e --window 10 --fine-steps 5,10,15,20,25,30
+    # pool several experiments and keep only one dataset:
+    python scripts/generate_report.py constant_tau_30e constant_tau_30e_part2 \
+        constant_tau_30e_part3 --dataset Amazon
 """
 import argparse
 import ast
@@ -27,25 +28,28 @@ METRICS = ["valid/recall", "valid/ndcg", "valid/hitrate", "valid/coverage"]
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
-    p.add_argument("experiment", help="MLflow experiment name, e.g. linear_tau_30e")
+    p.add_argument("experiment", nargs="+",
+                   help="One or more MLflow experiment names to pool, e.g. "
+                        "constant_tau_30e constant_tau_30e_part2 constant_tau_30e_part3")
     p.add_argument("--db", default="mlruns/mlflow.db", help="path to mlflow.db")
+    p.add_argument("--dataset", default=None,
+                   help="keep only runs whose data_dataset param contains this "
+                        "substring, e.g. 'Amazon' (default: keep all)")
     p.add_argument("--window", type=int, default=10,
                    help="epoch window size for the windowed table (default 10)")
     p.add_argument("--fine-steps", default="5,10,15,20,25,30",
                    help="comma epoch checkpoints for the fine prefix-max table")
     p.add_argument("--coarse-steps", default="15,30",
                    help="comma epoch checkpoints for the coarse prefix-max table")
-    p.add_argument("--baseline-exp", default="constant_tau_30e",
-                   help="experiment holding the baseline run (default constant_tau_30e)")
-    p.add_argument("--baseline", default="tau=0.045",
-                   help="baseline config label, e.g. 'tau=0.045' or 'min=0.035, max=0.06'")
-    p.add_argument("--baseline-lr", default="0.003",
-                   help="baseline learning rate (default 0.003)")
     return p.parse_args()
 
 
-def load_experiment(conn, name):
-    """Return {run_uuid: {'params': {...}, 'curves': {metric: [v_per_epoch]}}}."""
+def load_experiment(conn, name, dataset=None):
+    """Return {run_uuid: {'params': {...}, 'curves': {metric: [v_per_epoch]}}}.
+
+    When `dataset` is given, runs whose `data_dataset` param does not contain that
+    substring are dropped (used to keep only e.g. Amazon runs from a mixed experiment).
+    """
     c = conn.cursor()
     c.execute("SELECT experiment_id FROM experiments WHERE name=?", (name,))
     row = c.fetchone()
@@ -63,6 +67,8 @@ def load_experiment(conn, name):
     for ru in run_ids:
         params = dict(c.execute(
             "SELECT key, value FROM params WHERE run_uuid=?", (ru,)).fetchall())
+        if dataset and dataset not in params.get("data_dataset", ""):
+            continue
         curves = {}
         for m in METRICS:
             vals = [v for (v,) in c.execute(
@@ -70,6 +76,18 @@ def load_experiment(conn, name):
                 (ru, m)).fetchall()]
             curves[m] = vals
         runs[ru] = {"params": params, "curves": curves}
+    return runs
+
+
+def load_experiments(conn, names, dataset=None):
+    """Pool runs from several experiments into one {run_uuid: ...} dict.
+
+    Runs are keyed by run_uuid, so the report groups them purely by config
+    (tau/lr) regardless of which experiment/part they came from.
+    """
+    runs = {}
+    for name in names:
+        runs.update(load_experiment(conn, name, dataset))
     return runs
 
 
@@ -169,8 +187,8 @@ def table_windowed(groups, base_order, lr_order, window):
             ne = max_epochs(cl)
             bounds = [(i, min(i + window, ne)) for i in range(0, ne, window)]
             for j, (lo, hi) in enumerate(bounds):
-                cfg = f"lr={lr}, {base}" if j == 0 else ""
-                ncol = str(n) if j == 0 else ""
+                cfg = f"lr={lr}, {base}"
+                ncol = str(n)
                 part = f"E{lo + 1}–{hi}"
                 cells = " | ".join(fmt(*agg(cl, m, lo, hi)) for m in METRICS)
                 out.append(f"| {cfg} | {ncol} | {part} | {cells} |")
@@ -180,77 +198,18 @@ def table_windowed(groups, base_order, lr_order, window):
 
 # ---------------------------------------------------------------- table 2
 def table_final_comparison(groups, base_order, lr_order, window):
-    out = ["## Final results (last window, Δ% vs sibling lr)", ""]
+    out = ["## Final results (max over whole run, mean±std over seeds)", ""]
     out.append("| Config | lr | Recall | NDCG | Hitrate |")
     out.append("|---|---|---|---|---|")
     metrics3 = ["valid/recall", "valid/ndcg", "valid/hitrate"]
-    for base in base_order:
-        present_lrs = [lr for lr in lr_order if (base, lr) in groups]
-        # mean of last window per (lr, metric) for delta + bolding
-        last = {}
-        for lr in present_lrs:
-            cl = groups[(base, lr)]
-            ne = max_epochs(cl)
-            lo = max(0, ne - window)
-            last[lr] = {m: agg(cl, m, lo, ne) for m in metrics3}
-        best_lr = max(present_lrs, key=lambda lr: last[lr]["valid/recall"][0]) \
-            if present_lrs else None
-        for j, lr in enumerate(present_lrs):
-            cfg = base if j == 0 else ""
-            cells = []
-            for m in metrics3:
-                mean, std = last[lr][m]
-                others = [last[o][m][0] for o in present_lrs if o != lr]
-                txt = fmt(mean, std)
-                if others:
-                    ref = np.mean(others)
-                    pct = (mean - ref) / ref * 100
-                    txt += f" ({'+' if pct >= 0 else ''}{pct:.1f}%)"
-                if m == "valid/recall" and lr == best_lr and len(present_lrs) > 1:
-                    txt = f"**{txt}**"
-                cells.append(txt)
-            out.append(f"| {cfg} | {lr} | " + " | ".join(cells) + " |")
-    out.append("")
-    return "\n".join(out)
-
-
-# ---------------------------------------------------------------- table vs baseline
-def load_baseline(conn, exp_name, base_label, lr, window):
-    """Return ({metric: (mean, std)}, description) for the baseline run, or None."""
-    runs = load_experiment(conn, exp_name)
-    groups, _, _ = group_runs(runs)
-    cl = groups.get((base_label, lr))
-    if not cl:
-        avail = sorted({f"lr={b_lr}, {b}" for (b, b_lr) in groups})
-        raise SystemExit(
-            f"Baseline 'lr={lr}, {base_label}' not found in '{exp_name}'. "
-            f"Available: {avail}")
-    finals = last_window_finals(cl, ["valid/recall", "valid/ndcg", "valid/hitrate"],
-                                window)
-    return finals, f"{exp_name}: lr={lr}, {base_label} (n={len(cl)})"
-
-
-def table_vs_baseline(groups, base_order, lr_order, baseline, baseline_desc, window):
-    metrics3 = ["valid/recall", "valid/ndcg", "valid/hitrate"]
-    out = [f"## Final vs baseline — {baseline_desc}", ""]
-    out.append("| Config | lr | Recall (Δ%) | NDCG (Δ%) | Hitrate (Δ%) |")
-    out.append("|---|---|---|---|---|")
     for base in base_order:
         for lr in lr_order:
             cl = groups.get((base, lr))
             if not cl:
                 continue
-            finals = last_window_finals(cl, metrics3, window)
-            cells = []
-            for m in metrics3:
-                mean, std = finals[m]
-                ref = baseline[m][0]
-                pct = (mean - ref) / ref * 100 if ref else float("nan")
-                txt = f"{fmt(mean, std)} ({'+' if pct >= 0 else ''}{pct:.1f}%)"
-                if m == "valid/recall" and mean > ref:
-                    txt = f"**{txt}**"
-                cells.append(txt)
-            out.append(f"| {base} | {lr} | " + " | ".join(cells) + " |")
+            ne = max_epochs(cl)
+            cells = " | ".join(fmt(*agg(cl, m, 0, ne)) for m in metrics3)
+            out.append(f"| {base} | {lr} | {cells} |")
     out.append("")
     return "\n".join(out)
 
@@ -490,12 +449,17 @@ def main():
     coarse = [int(x) for x in args.coarse_steps.split(",")]
 
     conn = sqlite3.connect(args.db)
-    runs = load_experiment(conn, args.experiment)
+    runs = load_experiments(conn, args.experiment, args.dataset)
     if not runs:
-        raise SystemExit(f"No active runs in experiment '{args.experiment}'.")
+        raise SystemExit(
+            f"No active runs in {args.experiment}"
+            + (f" for dataset '{args.dataset}'." if args.dataset else "."))
     groups, base_order, lr_order = group_runs(runs)
 
-    print(f"# {args.experiment}\n")
+    title = " + ".join(args.experiment)
+    if args.dataset:
+        title += f" ({args.dataset})"
+    print(f"# {title}\n")
     # Scale × shift comparison (only emitted when the runs carry shift/scale).
     shift_scale_pivot = table_shift_scale_pivot(runs, args.window)
     if shift_scale_pivot:
@@ -508,10 +472,6 @@ def main():
     print(table_epochs_to_max(groups, base_order, lr_order))
     print(table_windowed(groups, base_order, lr_order, args.window))
     print(table_final_comparison(groups, base_order, lr_order, args.window))
-    baseline, baseline_desc = load_baseline(
-        conn, args.baseline_exp, args.baseline, args.baseline_lr, args.window)
-    print(table_vs_baseline(groups, base_order, lr_order,
-                            baseline, baseline_desc, args.window))
     print(table_prefix(groups, base_order, lr_order, fine,
                        "Prefix max recall, fine steps (Δ% vs previous)"))
     print(table_window_mean(groups, base_order, lr_order, fine,
