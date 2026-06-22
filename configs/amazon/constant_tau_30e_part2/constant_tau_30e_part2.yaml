@@ -1,8 +1,8 @@
 sweep:
   seeds: [42, 123, 456]
   grid:
-    tau.json_args.initial_tau: [0.03, 0.04, 0.045, 0.06]
-    optimizer.json_args.lr: [3.0e-3]
+    tau.json_args.initial_tau: [0.06]
+    optimizer.json_args.lr: [2.0e-3]
 
 graph:
   n_layers: 4
@@ -61,7 +61,7 @@ scheduler:
     eta_min: 1.0e-3
 
 training:
-  num_epochs: 30
+  num_epochs: 45
   grad_clip: 1.0
   eval_every: 1
   logging: true

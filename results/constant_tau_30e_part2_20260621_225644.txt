@@ -1,0 +1,35 @@
+Sweep: 1 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Constant[value=0.06]  (seed=42)
+hitrate: 0.0462
+recall: 0.0349
+ndcg: 0.0109
+coverage: 0.1156
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.06]  (seed=123)
+hitrate: 0.0463
+recall: 0.0349
+ndcg: 0.0105
+coverage: 0.1157
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.06]  (seed=456)
+hitrate: 0.0491
+recall: 0.0369
+ndcg: 0.0113
+coverage: 0.1210
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Constant[value=0.06]
+tau.json_args.initial_tau: 0.06
+optimizer.json_args.lr: 0.002
+hitrate: 0.0472 ± 0.0017
+recall: 0.0356 ± 0.0012
+ndcg: 0.0109 ± 0.0004
+coverage: 0.1174 ± 0.0031
+--------------------------------

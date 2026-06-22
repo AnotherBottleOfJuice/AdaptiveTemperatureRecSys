@@ -1,0 +1,180 @@
+Sweep: 6 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=42)
+hitrate: 0.0419
+recall: 0.0323
+ndcg: 0.0105
+coverage: 0.1985
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=123)
+hitrate: 0.0438
+recall: 0.0331
+ndcg: 0.0106
+coverage: 0.1922
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=456)
+hitrate: 0.0464
+recall: 0.0351
+ndcg: 0.0110
+coverage: 0.2539
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=42)
+hitrate: 0.0449
+recall: 0.0305
+ndcg: 0.0092
+coverage: 0.1307
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=123)
+hitrate: 0.0431
+recall: 0.0290
+ndcg: 0.0087
+coverage: 0.1154
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.055]  (seed=456)
+hitrate: 0.0494
+recall: 0.0350
+ndcg: 0.0110
+coverage: 0.2396
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=42)
+hitrate: 0.0465
+recall: 0.0348
+ndcg: 0.0105
+coverage: 0.0758
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=123)
+hitrate: 0.0497
+recall: 0.0374
+ndcg: 0.0111
+coverage: 0.0925
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=456)
+hitrate: 0.0486
+recall: 0.0359
+ndcg: 0.0110
+coverage: 0.0776
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=42)
+hitrate: 0.0403
+recall: 0.0270
+ndcg: 0.0080
+coverage: 0.0514
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=123)
+hitrate: 0.0494
+recall: 0.0342
+ndcg: 0.0102
+coverage: 0.0957
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.065]  (seed=456)
+hitrate: 0.0486
+recall: 0.0340
+ndcg: 0.0103
+coverage: 0.1119
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=42)
+hitrate: 0.0471
+recall: 0.0348
+ndcg: 0.0105
+coverage: 0.0517
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=123)
+hitrate: 0.0490
+recall: 0.0361
+ndcg: 0.0106
+coverage: 0.0579
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=456)
+hitrate: 0.0503
+recall: 0.0368
+ndcg: 0.0110
+coverage: 0.0606
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=42)
+hitrate: 0.0438
+recall: 0.0312
+ndcg: 0.0088
+coverage: 0.0470
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=123)
+hitrate: 0.0518
+recall: 0.0372
+ndcg: 0.0108
+coverage: 0.0783
+--------------------------------
+--------------------------------
+Experiment name: Constant[value=0.07]  (seed=456)
+hitrate: 0.0489
+recall: 0.0348
+ndcg: 0.0106
+coverage: 0.0742
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Constant[value=0.055]
+tau.json_args.initial_tau: 0.055
+optimizer.json_args.lr: 0.002
+hitrate: 0.0440 ± 0.0023
+recall: 0.0335 ± 0.0014
+ndcg: 0.0107 ± 0.0002
+coverage: 0.2149 ± 0.0340
+--------------------------------
+Experiment name: Constant[value=0.055]
+tau.json_args.initial_tau: 0.055
+optimizer.json_args.lr: 0.003
+hitrate: 0.0458 ± 0.0032
+recall: 0.0315 ± 0.0031
+ndcg: 0.0096 ± 0.0012
+coverage: 0.1619 ± 0.0677
+--------------------------------
+Experiment name: Constant[value=0.065]
+tau.json_args.initial_tau: 0.065
+optimizer.json_args.lr: 0.002
+hitrate: 0.0483 ± 0.0016
+recall: 0.0360 ± 0.0013
+ndcg: 0.0109 ± 0.0003
+coverage: 0.0820 ± 0.0092
+--------------------------------
+Experiment name: Constant[value=0.065]
+tau.json_args.initial_tau: 0.065
+optimizer.json_args.lr: 0.003
+hitrate: 0.0461 ± 0.0050
+recall: 0.0317 ± 0.0041
+ndcg: 0.0095 ± 0.0013
+coverage: 0.0863 ± 0.0313
+--------------------------------
+Experiment name: Constant[value=0.07]
+tau.json_args.initial_tau: 0.07
+optimizer.json_args.lr: 0.002
+hitrate: 0.0488 ± 0.0016
+recall: 0.0359 ± 0.0010
+ndcg: 0.0107 ± 0.0003
+coverage: 0.0567 ± 0.0046
+--------------------------------
+Experiment name: Constant[value=0.07]
+tau.json_args.initial_tau: 0.07
+optimizer.json_args.lr: 0.003
+hitrate: 0.0482 ± 0.0041
+recall: 0.0344 ± 0.0030
+ndcg: 0.0101 ± 0.0011
+coverage: 0.0665 ± 0.0170
+--------------------------------
