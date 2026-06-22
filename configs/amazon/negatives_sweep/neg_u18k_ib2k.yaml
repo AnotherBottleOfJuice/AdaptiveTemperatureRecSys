@@ -1,9 +1,5 @@
 sweep:
   seeds: [42, 123, 456]
-  grid:
-    optimizer.json_args.lr: [2.0e-3, 3.0e-3]
-    tau.json_args.tau_min: [0.05, 0.055]
-    tau.json_args.tau_max: [0.065, 0.070]
 
 graph:
   n_layers: 4
@@ -28,13 +24,13 @@ data:
       window_end: 1672531200000     # 2023-01-01 (ms)
 
 tau:
-  class_name: LinearTau
+  class_name: ConstantTau
   json_args:
-    initial_tau: null
-    tau_min: 0.05
-    tau_max: 0.07
-    num_epochs: 30
-    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed (7142400 * 30 = 214272000)
+    initial_tau: 0.065
+    tau_min: null
+    tau_max: null
+    num_epochs: null
+    num_tokens_per_epoch: null
 
 training_dataset:
   batch_size: 128
@@ -42,8 +38,8 @@ training_dataset:
   chunk_rows: 64000
   shuffle: true
   seed: 42
-  uniform_negative_items: 24000
-  in_batch_negative_items: 6000
+  uniform_negative_items: 18000
+  in_batch_negative_items: 2000
 
 test_dataset:
   batch_size: 32
@@ -52,7 +48,7 @@ test_dataset:
 optimizer:
   class_name: AdamW
   json_args:
-    lr: 3.0e-3
+    lr: 2.0e-3
     weight_decay: 1.0e-5
 
 scheduler:
@@ -62,7 +58,7 @@ scheduler:
     eta_min: 1.0e-3
 
 training:
-  num_epochs: 40
+  num_epochs: 30
   grad_clip: 1.0
   eval_every: 1
   logging: true
