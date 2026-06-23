@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=amazon_linear_tau_30e
 #SBATCH --account=proj_1876
-#SBATCH --time=26:00:00
+#SBATCH --time=36:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
 #SBATCH --gpus=2

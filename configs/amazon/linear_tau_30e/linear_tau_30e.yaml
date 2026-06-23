@@ -33,8 +33,8 @@ tau:
     initial_tau: null
     tau_min: 0.05
     tau_max: 0.07
-    num_epochs: 30
-    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed (7142400 * 30 = 214272000)
+    num_epochs: 40  # match training.num_epochs so the anneal spans the full run
+    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed
 
 training_dataset:
   batch_size: 128
@@ -42,8 +42,8 @@ training_dataset:
   chunk_rows: 64000
   shuffle: true
   seed: 42
-  uniform_negative_items: 24000
-  in_batch_negative_items: 6000
+  uniform_negative_items: 20000
+  in_batch_negative_items: 10000
 
 test_dataset:
   batch_size: 32
