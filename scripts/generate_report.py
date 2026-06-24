@@ -50,6 +50,10 @@ def parse_args():
                    help="comma epoch checkpoints for the fine prefix-max table")
     p.add_argument("--coarse-steps", default="15,30",
                    help="comma epoch checkpoints for the coarse prefix-max table")
+    p.add_argument("--baseline-exp", nargs="+", default=None,
+                   help="experiment(s) to source the baseline from; the highest-recall "
+                        "config among them (e.g. the best constant tau) becomes the "
+                        "Δ%% reference in the Final results table. Honors --dataset.")
     return p.parse_args()
 
 
@@ -208,20 +212,56 @@ def table_windowed(groups, base_order, lr_order, window):
     return "\n".join(out)
 
 
+FINAL_METRICS = ["valid/recall", "valid/ndcg", "valid/hitrate"]
+
+
+def whole_run_finals(cl):
+    """{metric: (mean, std)} of the max-over-whole-run, across seeds."""
+    ne = max_epochs(cl)
+    return {m: agg(cl, m, 0, ne) for m in FINAL_METRICS}
+
+
+def best_constant_baseline(conn, exp_names, dataset):
+    """Pick the highest-recall config across exp_names as the baseline.
+
+    Returns ({metric: (mean, std)}, description) or None.
+    """
+    groups, _, _ = group_runs(load_experiments(conn, exp_names, dataset))
+    best = None
+    for (base, lr), cl in groups.items():
+        finals = whole_run_finals(cl)
+        if best is None or finals["valid/recall"][0] > best[0]["valid/recall"][0]:
+            best = (finals, f"{base} @ lr={lr} (n={len(cl)})")
+    return best
+
+
 # ---------------------------------------------------------------- table 2
-def table_final_comparison(groups, base_order, lr_order, window):
-    out = ["## Final results (max over whole run, mean±std over seeds)", ""]
+def table_final_comparison(groups, base_order, lr_order, window,
+                           baseline=None, baseline_desc=None):
+    title = "## Final results (max over whole run, mean±std over seeds)"
+    if baseline is not None:
+        title += f" — Δ% vs baseline ({baseline_desc})"
+    out = [title, ""]
     out.append("| Config | lr | Recall | NDCG | Hitrate |")
     out.append("|---|---|---|---|---|")
-    metrics3 = ["valid/recall", "valid/ndcg", "valid/hitrate"]
     for base in base_order:
         for lr in lr_order:
             cl = groups.get((base, lr))
             if not cl:
                 continue
             ne = max_epochs(cl)
-            cells = " | ".join(fmt(*agg(cl, m, 0, ne)) for m in metrics3)
-            out.append(f"| {base} | {lr} | {cells} |")
+            cells = []
+            for m in FINAL_METRICS:
+                mean, std = agg(cl, m, 0, ne)
+                txt = fmt(mean, std)
+                if baseline is not None:
+                    ref = baseline[m][0]
+                    pct = (mean - ref) / ref * 100 if ref else float("nan")
+                    txt += f" ({'+' if pct >= 0 else ''}{pct:.1f}%)"
+                    if m == "valid/recall" and mean > ref:
+                        txt = f"**{txt}**"
+                cells.append(txt)
+            out.append(f"| {base} | {lr} | " + " | ".join(cells) + " |")
     out.append("")
     return "\n".join(out)
 
@@ -482,9 +522,19 @@ def main():
     base_linear_pivot = table_base_linear_pivot(runs, args.window)
     if base_linear_pivot:
         print(base_linear_pivot)
+    baseline = baseline_desc = None
+    if args.baseline_exp:
+        b = best_constant_baseline(conn, args.baseline_exp, dataset)
+        if b is None:
+            raise SystemExit(
+                f"No baseline runs in {args.baseline_exp}"
+                + (f" for dataset '{args.dataset}'." if dataset else "."))
+        baseline, baseline_desc = b
+
     print(table_epochs_to_max(groups, base_order, lr_order))
     print(table_windowed(groups, base_order, lr_order, args.window))
-    print(table_final_comparison(groups, base_order, lr_order, args.window))
+    print(table_final_comparison(groups, base_order, lr_order, args.window,
+                                 baseline, baseline_desc))
     print(table_prefix(groups, base_order, lr_order, fine,
                        "Prefix max recall, fine steps (Δ% vs previous)"))
     print(table_window_mean(groups, base_order, lr_order, fine,
