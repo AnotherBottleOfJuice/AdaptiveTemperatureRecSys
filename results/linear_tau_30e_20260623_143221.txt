@@ -1,0 +1,246 @@
+Sweep: 8 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0480
+recall: 0.0348
+ndcg: 0.0107
+coverage: 0.4056
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0487
+recall: 0.0350
+ndcg: 0.0108
+coverage: 0.3535
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0474
+recall: 0.0338
+ndcg: 0.0104
+coverage: 0.3224
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0493
+recall: 0.0356
+ndcg: 0.0109
+coverage: 0.3895
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0488
+recall: 0.0352
+ndcg: 0.0108
+coverage: 0.3919
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0476
+recall: 0.0343
+ndcg: 0.0105
+coverage: 0.3472
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0480
+recall: 0.0351
+ndcg: 0.0107
+coverage: 0.2348
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0495
+recall: 0.0361
+ndcg: 0.0111
+coverage: 0.1949
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0514
+recall: 0.0373
+ndcg: 0.0111
+coverage: 0.2119
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0509
+recall: 0.0376
+ndcg: 0.0112
+coverage: 0.2024
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0527
+recall: 0.0382
+ndcg: 0.0113
+coverage: 0.1929
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0510
+recall: 0.0370
+ndcg: 0.0111
+coverage: 0.1922
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0431
+recall: 0.0294
+ndcg: 0.0084
+coverage: 0.1238
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0489
+recall: 0.0334
+ndcg: 0.0103
+coverage: 0.2594
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0494
+recall: 0.0339
+ndcg: 0.0106
+coverage: 0.2946
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0435
+recall: 0.0297
+ndcg: 0.0084
+coverage: 0.1586
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0464
+recall: 0.0314
+ndcg: 0.0098
+coverage: 0.2217
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0472
+recall: 0.0325
+ndcg: 0.0099
+coverage: 0.2183
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0470
+recall: 0.0325
+ndcg: 0.0096
+coverage: 0.1556
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0494
+recall: 0.0346
+ndcg: 0.0102
+coverage: 0.1975
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0510
+recall: 0.0356
+ndcg: 0.0106
+coverage: 0.2157
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0463
+recall: 0.0309
+ndcg: 0.0088
+coverage: 0.1375
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0485
+recall: 0.0339
+ndcg: 0.0102
+coverage: 0.1817
+--------------------------------
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0443
+recall: 0.0298
+ndcg: 0.0089
+coverage: 0.1169
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.065
+hitrate: 0.0480 ± 0.0007
+recall: 0.0345 ± 0.0007
+ndcg: 0.0106 ± 0.0002
+coverage: 0.3605 ± 0.0421
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.07
+hitrate: 0.0486 ± 0.0009
+recall: 0.0350 ± 0.0006
+ndcg: 0.0107 ± 0.0002
+coverage: 0.3762 ± 0.0251
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.065
+hitrate: 0.0496 ± 0.0017
+recall: 0.0362 ± 0.0011
+ndcg: 0.0110 ± 0.0002
+coverage: 0.2139 ± 0.0201
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.07
+hitrate: 0.0515 ± 0.0010
+recall: 0.0376 ± 0.0006
+ndcg: 0.0112 ± 0.0001
+coverage: 0.1959 ± 0.0057
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.065
+hitrate: 0.0472 ± 0.0035
+recall: 0.0322 ± 0.0025
+ndcg: 0.0098 ± 0.0012
+coverage: 0.2259 ± 0.0902
+--------------------------------
+Experiment name: Linear[min=0.05,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.07
+hitrate: 0.0457 ± 0.0019
+recall: 0.0312 ± 0.0014
+ndcg: 0.0093 ± 0.0009
+coverage: 0.1995 ± 0.0354
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.065
+hitrate: 0.0492 ± 0.0020
+recall: 0.0343 ± 0.0016
+ndcg: 0.0101 ± 0.0005
+coverage: 0.1896 ± 0.0308
+--------------------------------
+Experiment name: Linear[min=0.055,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.07
+hitrate: 0.0464 ± 0.0021
+recall: 0.0316 ± 0.0021
+ndcg: 0.0093 ± 0.0008
+coverage: 0.1454 ± 0.0331
+--------------------------------

@@ -1,0 +1,246 @@
+Sweep: 8 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0494
+recall: 0.0357
+ndcg: 0.0109
+coverage: 0.3650
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0494
+recall: 0.0353
+ndcg: 0.0109
+coverage: 0.3956
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0493
+recall: 0.0350
+ndcg: 0.0106
+coverage: 0.3491
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0494
+recall: 0.0354
+ndcg: 0.0109
+coverage: 0.3359
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0506
+recall: 0.0361
+ndcg: 0.0110
+coverage: 0.3683
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0500
+recall: 0.0350
+ndcg: 0.0107
+coverage: 0.3150
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0494
+recall: 0.0351
+ndcg: 0.0107
+coverage: 0.1910
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0508
+recall: 0.0372
+ndcg: 0.0111
+coverage: 0.2141
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0511
+recall: 0.0370
+ndcg: 0.0111
+coverage: 0.1913
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0495
+recall: 0.0357
+ndcg: 0.0106
+coverage: 0.1864
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0511
+recall: 0.0373
+ndcg: 0.0112
+coverage: 0.2061
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0508
+recall: 0.0363
+ndcg: 0.0110
+coverage: 0.1757
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0449
+recall: 0.0306
+ndcg: 0.0089
+coverage: 0.1846
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0451
+recall: 0.0303
+ndcg: 0.0090
+coverage: 0.1147
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0501
+recall: 0.0343
+ndcg: 0.0104
+coverage: 0.2552
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0423
+recall: 0.0286
+ndcg: 0.0079
+coverage: 0.1176
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0454
+recall: 0.0310
+ndcg: 0.0095
+coverage: 0.1692
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0484
+recall: 0.0337
+ndcg: 0.0100
+coverage: 0.2292
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0466
+recall: 0.0324
+ndcg: 0.0095
+coverage: 0.1464
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0465
+recall: 0.0319
+ndcg: 0.0097
+coverage: 0.1791
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0461
+recall: 0.0307
+ndcg: 0.0095
+coverage: 0.1321
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0422
+recall: 0.0281
+ndcg: 0.0081
+coverage: 0.0880
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0460
+recall: 0.0311
+ndcg: 0.0092
+coverage: 0.0793
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0474
+recall: 0.0325
+ndcg: 0.0097
+coverage: 0.1580
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.065
+hitrate: 0.0494 ± 0.0001
+recall: 0.0354 ± 0.0004
+ndcg: 0.0108 ± 0.0002
+coverage: 0.3699 ± 0.0236
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.07
+hitrate: 0.0500 ± 0.0006
+recall: 0.0355 ± 0.0006
+ndcg: 0.0109 ± 0.0002
+coverage: 0.3397 ± 0.0269
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.065
+hitrate: 0.0504 ± 0.0009
+recall: 0.0365 ± 0.0011
+ndcg: 0.0110 ± 0.0002
+coverage: 0.1988 ± 0.0133
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.002
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.07
+hitrate: 0.0505 ± 0.0008
+recall: 0.0364 ± 0.0008
+ndcg: 0.0109 ± 0.0003
+coverage: 0.1894 ± 0.0154
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.065
+hitrate: 0.0467 ± 0.0029
+recall: 0.0317 ± 0.0022
+ndcg: 0.0094 ± 0.0008
+coverage: 0.1849 ± 0.0703
+--------------------------------
+Experiment name: Cos[min=0.05,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.05
+tau.json_args.tau_max: 0.07
+hitrate: 0.0453 ± 0.0030
+recall: 0.0311 ± 0.0025
+ndcg: 0.0092 ± 0.0011
+coverage: 0.1720 ± 0.0558
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.065,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.065
+hitrate: 0.0464 ± 0.0003
+recall: 0.0317 ± 0.0009
+ndcg: 0.0095 ± 0.0001
+coverage: 0.1526 ± 0.0241
+--------------------------------
+Experiment name: Cos[min=0.055,max=0.07,epochs=40]
+optimizer.json_args.lr: 0.003
+tau.json_args.tau_min: 0.055
+tau.json_args.tau_max: 0.07
+hitrate: 0.0452 ± 0.0027
+recall: 0.0306 ± 0.0022
+ndcg: 0.0090 ± 0.0008
+coverage: 0.1084 ± 0.0431
+--------------------------------
