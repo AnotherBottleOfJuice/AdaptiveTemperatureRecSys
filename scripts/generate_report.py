@@ -24,6 +24,14 @@ import numpy as np
 
 METRICS = ["valid/recall", "valid/ndcg", "valid/hitrate", "valid/coverage"]
 
+# friendly --dataset names -> substring matched against the data_dataset param
+DATASET_FILTERS = {"amazon": "AmazonBeautyDataset", "yandex": "YambdaDataset"}
+
+
+def resolve_dataset(name):
+    """Map 'amazon'/'yandex' to their dataset class; pass anything else through."""
+    return None if name is None else DATASET_FILTERS.get(name.lower(), name)
+
 
 def parse_args():
     p = argparse.ArgumentParser(description=__doc__,
@@ -33,8 +41,9 @@ def parse_args():
                         "constant_tau_30e constant_tau_30e_part2 constant_tau_30e_part3")
     p.add_argument("--db", default="mlruns/mlflow.db", help="path to mlflow.db")
     p.add_argument("--dataset", default=None,
-                   help="keep only runs whose data_dataset param contains this "
-                        "substring, e.g. 'Amazon' (default: keep all)")
+                   help="keep only runs from this dataset: 'amazon' or 'yandex' "
+                        "(or any raw substring of the data_dataset param). "
+                        "Default: keep all.")
     p.add_argument("--window", type=int, default=10,
                    help="epoch window size for the windowed table (default 10)")
     p.add_argument("--fine-steps", default="5,10,15,20,25,30",
@@ -107,7 +116,10 @@ def config_label(params):
         base = (f"bt={targs.get('base_threshold')}, "
                 f"lc={targs.get('linear_coeff')}")
     elif tau_cls == "LinearTau" or (targs.get("tau_min") is not None):
-        base = f"min={targs.get('tau_min')}, max={targs.get('tau_max')}"
+        # Prefix the schedule class so pooling several experiments doesn't merge
+        # e.g. Linear and Cos runs that share the same tau_min/tau_max range.
+        sched = tau_cls.replace("Tau", "") if tau_cls else "Sched"
+        base = f"{sched} min={targs.get('tau_min')}, max={targs.get('tau_max')}"
         # shift/scale (ShiftedCosPerUserTau & friends) are part of the config
         # identity: without them every shift/scale combo collapses into one group.
         if targs.get("shift") is not None:
@@ -449,11 +461,12 @@ def main():
     coarse = [int(x) for x in args.coarse_steps.split(",")]
 
     conn = sqlite3.connect(args.db)
-    runs = load_experiments(conn, args.experiment, args.dataset)
+    dataset = resolve_dataset(args.dataset)
+    runs = load_experiments(conn, args.experiment, dataset)
     if not runs:
         raise SystemExit(
             f"No active runs in {args.experiment}"
-            + (f" for dataset '{args.dataset}'." if args.dataset else "."))
+            + (f" for dataset '{args.dataset}' ({dataset})." if dataset else "."))
     groups, base_order, lr_order = group_runs(runs)
 
     title = " + ".join(args.experiment)

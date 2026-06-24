@@ -1,0 +1,74 @@
+# Refinement of cos anneal: tau_min fixed at 0.06 (the best constant tau on amazon),
+# sweeping tau_max over {0.065, 0.07}. lr fixed at 2e-3 (3e-3 was clearly worse in part1).
+sweep:
+  seeds: [42, 123, 456]
+  grid:
+    tau.json_args.tau_max: [0.065, 0.070]
+
+graph:
+  n_layers: 4
+  d_model: 256
+  n_heads: 4
+  dropout: 0.0
+  log_q_correction: 1.0
+  is_cosine_similarity: true
+
+data:
+  vocab_size: 156922
+  max_seq_len: 100
+  bos: 0
+  max_train_events_per_user: 100
+  dataset:
+    class_name: AmazonBeautyDataset
+    json_args:
+      path_interactions: data/amazon_beauty/interactions.jsonl
+      core_min_interaction_per_item: 5
+      test_interval_seconds: 1209600  # 14 days
+      window_start: 1609459200000   # 2021-01-01 (ms)
+      window_end: 1672531200000     # 2023-01-01 (ms)
+
+tau:
+  class_name: CosTau
+  json_args:
+    initial_tau: null
+    tau_min: 0.06
+    tau_max: 0.07
+    num_epochs: 40  # match training.num_epochs so the anneal spans the full run
+    num_tokens_per_epoch: 7142400  # amazon tokens/epoch, recovered from logged tokens_passed
+
+training_dataset:
+  batch_size: 128
+  device: cuda
+  chunk_rows: 64000
+  shuffle: true
+  seed: 42
+  uniform_negative_items: 20000
+  in_batch_negative_items: 10000
+
+test_dataset:
+  batch_size: 32
+  device: cuda
+
+optimizer:
+  class_name: AdamW
+  json_args:
+    lr: 2.0e-3
+    weight_decay: 1.0e-5
+
+scheduler:
+  class_name: CosineAnnealingLR
+  json_args:
+    T_max: 30
+    eta_min: 1.0e-3
+
+training:
+  num_epochs: 40
+  grad_clip: 1.0
+  eval_every: 1
+  logging: true
+  log_dir: mlruns
+  console_logging: true
+  seed: 42
+
+evaluator:
+  topk: 100
