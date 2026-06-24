@@ -1,0 +1,62 @@
+Sweep: 2 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.065,epochs=40]  (seed=42)
+hitrate: 0.0511
+recall: 0.0373
+ndcg: 0.0110
+coverage: 0.1086
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.065,epochs=40]  (seed=123)
+hitrate: 0.0493
+recall: 0.0361
+ndcg: 0.0107
+coverage: 0.1123
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.065,epochs=40]  (seed=456)
+hitrate: 0.0516
+recall: 0.0375
+ndcg: 0.0112
+coverage: 0.1108
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.07,epochs=40]  (seed=42)
+hitrate: 0.0503
+recall: 0.0363
+ndcg: 0.0110
+coverage: 0.1160
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.07,epochs=40]  (seed=123)
+hitrate: 0.0510
+recall: 0.0373
+ndcg: 0.0110
+coverage: 0.1065
+--------------------------------
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.07,epochs=40]  (seed=456)
+hitrate: 0.0497
+recall: 0.0356
+ndcg: 0.0103
+coverage: 0.1267
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.065,epochs=40]
+tau.json_args.tau_max: 0.065
+hitrate: 0.0507 ± 0.0012
+recall: 0.0370 ± 0.0007
+ndcg: 0.0110 ± 0.0002
+coverage: 0.1106 ± 0.0018
+--------------------------------
+Experiment name: Cos[min=0.06,max=0.07,epochs=40]
+tau.json_args.tau_max: 0.07
+hitrate: 0.0504 ± 0.0006
+recall: 0.0364 ± 0.0009
+ndcg: 0.0108 ± 0.0004
+coverage: 0.1164 ± 0.0101
+--------------------------------
