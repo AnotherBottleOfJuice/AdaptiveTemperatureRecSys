@@ -1,0 +1,79 @@
+# MACLoss adaptive tau on amazon: tau = (pos_logit_mean - base_threshold)*linear_coeff
+# + initial_tau, clamped to [tau_min, tau_max]. base_threshold centered on amazon's
+# measured pos_logit_mean (~0.30, vs yandex ~0.215). lr fixed at 2e-3.
+sweep:
+  seeds: [42, 123, 456]
+  grid:
+    optimizer.json_args.lr: [2.0e-3]
+    tau.json_args.base_threshold: [0.30, 0.32]
+    tau.json_args.linear_coeff: [-0.1, -0.2]
+
+graph:
+  n_layers: 4
+  d_model: 256
+  n_heads: 4
+  dropout: 0.0
+  log_q_correction: 1.0
+  is_cosine_similarity: true
+
+data:
+  vocab_size: 156922
+  max_seq_len: 100
+  bos: 0
+  max_train_events_per_user: 100
+  dataset:
+    class_name: AmazonBeautyDataset
+    json_args:
+      path_interactions: data/amazon_beauty/interactions.jsonl
+      core_min_interaction_per_item: 5
+      test_interval_seconds: 1209600  # 14 days
+      window_start: 1609459200000   # 2021-01-01 (ms)
+      window_end: 1672531200000     # 2023-01-01 (ms)
+
+tau:
+  class_name: MACLossTau
+  json_args:
+    initial_tau: 0.06
+    tau_min: 0.05
+    tau_max: 0.07
+    num_epochs: 40
+    num_tokens_per_epoch: 7142400  # amazon tokens/epoch (unused by MACLossTau, kept for parity)
+    base_threshold: 0.30
+    linear_coeff: -0.15
+
+training_dataset:
+  batch_size: 128
+  device: cuda
+  chunk_rows: 64000
+  shuffle: true
+  seed: 42
+  uniform_negative_items: 20000
+  in_batch_negative_items: 10000
+
+test_dataset:
+  batch_size: 32
+  device: cuda
+
+optimizer:
+  class_name: AdamW
+  json_args:
+    lr: 2.0e-3
+    weight_decay: 1.0e-5
+
+scheduler:
+  class_name: CosineAnnealingLR
+  json_args:
+    T_max: 40
+    eta_min: 1.0e-3
+
+training:
+  num_epochs: 40
+  grad_clip: 1.0
+  eval_every: 1
+  logging: true
+  log_dir: mlruns
+  console_logging: true
+  seed: 42
+
+evaluator:
+  topk: 100
