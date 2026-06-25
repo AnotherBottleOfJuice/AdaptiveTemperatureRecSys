@@ -1,0 +1,58 @@
+Sweep: 4 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=42)
+hitrate: 0.0476
+recall: 0.0367
+ndcg: 0.0110
+coverage: 0.1222
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=123)
+hitrate: 0.0471
+recall: 0.0356
+ndcg: 0.0109
+coverage: 0.1219
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=456)
+hitrate: 0.0485
+recall: 0.0361
+ndcg: 0.0108
+coverage: 0.1353
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=42)
+hitrate: 0.0451
+recall: 0.0347
+ndcg: 0.0105
+coverage: 0.1695
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=123)
+hitrate: 0.0449
+recall: 0.0345
+ndcg: 0.0104
+coverage: 0.1676
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=456)
+hitrate: 0.0474
+recall: 0.0356
+ndcg: 0.0110
+coverage: 0.1969
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=42)
+hitrate: 0.0512
+recall: 0.0377
+ndcg: 0.0116
+coverage: 0.0969
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.05,max=0.07]  (seed=123)
+hitrate: 0.0483
+recall: 0.0362
+ndcg: 0.0110
+coverage: 0.0882
+--------------------------------
