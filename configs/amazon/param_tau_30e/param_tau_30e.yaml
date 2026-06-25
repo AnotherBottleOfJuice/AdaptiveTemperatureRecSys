@@ -1,9 +1,15 @@
+# ParameterTau on amazon: tau is a learnable scalar = sigmoid(raw) mapped into
+# [tau_min, tau_max]; raw inits at 0 so tau starts at the range midpoint, then
+# learns. Range centered on amazon's constant-tau optimum (~0.06-0.065 @ lr 2e-3)
+# so it inits on the optimum with headroom above. lr fixed at 2e-3 (amazon's best;
+# lr 3e-3 was consistently worse/noisier here, unlike yandex where ParameterTau
+# preferred the upper part of its range and lr 3e-3).
 sweep:
   seeds: [42, 123, 456]
   grid:
     optimizer.json_args.lr: [2.0e-3]
-    tau.json_args.tau_min: [0.06]
-    tau.json_args.tau_max: [0.065, 0.070]
+    tau.json_args.tau_min: [0.055, 0.06]
+    tau.json_args.tau_max: [0.07, 0.075]
 
 graph:
   n_layers: 4
@@ -28,13 +34,13 @@ data:
       window_end: 1672531200000     # 2023-01-01 (ms)
 
 tau:
-  class_name: CosPerUserTau
+  class_name: ParameterTau
   json_args:
     initial_tau: 0.06
     tau_min: 0.05
     tau_max: 0.07
     num_epochs: 40
-    num_tokens_per_epoch: 7142400  # amazon tokens/epoch (unused by CosPerUserTau, kept for parity)
+    num_tokens_per_epoch: 7142400  # amazon tokens/epoch (unused by ParameterTau, kept for parity)
 
 training_dataset:
   batch_size: 128
