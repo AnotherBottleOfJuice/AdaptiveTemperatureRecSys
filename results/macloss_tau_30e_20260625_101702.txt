@@ -1,0 +1,126 @@
+Sweep: 4 combo(s) × 3 seed(s) [42, 123, 456] on 2 GPU(s)
+
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=42)
+hitrate: 0.0498
+recall: 0.0370
+ndcg: 0.0112
+coverage: 0.1033
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=123)
+hitrate: 0.0513
+recall: 0.0375
+ndcg: 0.0113
+coverage: 0.1059
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=456)
+hitrate: 0.0496
+recall: 0.0364
+ndcg: 0.0110
+coverage: 0.1176
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=42)
+hitrate: 0.0504
+recall: 0.0379
+ndcg: 0.0111
+coverage: 0.1044
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=123)
+hitrate: 0.0497
+recall: 0.0370
+ndcg: 0.0112
+coverage: 0.0975
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=456)
+hitrate: 0.0500
+recall: 0.0374
+ndcg: 0.0114
+coverage: 0.1090
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=42)
+hitrate: 0.0504
+recall: 0.0370
+ndcg: 0.0112
+coverage: 0.0992
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=123)
+hitrate: 0.0494
+recall: 0.0371
+ndcg: 0.0113
+coverage: 0.0886
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=456)
+hitrate: 0.0517
+recall: 0.0378
+ndcg: 0.0110
+coverage: 0.0979
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=42)
+hitrate: 0.0502
+recall: 0.0374
+ndcg: 0.0114
+coverage: 0.1075
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=123)
+hitrate: 0.0502
+recall: 0.0376
+ndcg: 0.0112
+coverage: 0.0922
+--------------------------------
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]  (seed=456)
+hitrate: 0.0518
+recall: 0.0384
+ndcg: 0.0113
+coverage: 0.1009
+--------------------------------
+
+--------------------------------
+Sweep summary (mean ± std across reruns)
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]
+optimizer.json_args.lr: 0.002
+tau.json_args.base_threshold: 0.3
+tau.json_args.linear_coeff: -0.1
+hitrate: 0.0502 ± 0.0009
+recall: 0.0370 ± 0.0005
+ndcg: 0.0112 ± 0.0002
+coverage: 0.1089 ± 0.0077
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]
+optimizer.json_args.lr: 0.002
+tau.json_args.base_threshold: 0.3
+tau.json_args.linear_coeff: -0.05
+hitrate: 0.0500 ± 0.0003
+recall: 0.0374 ± 0.0005
+ndcg: 0.0112 ± 0.0001
+coverage: 0.1037 ± 0.0058
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]
+optimizer.json_args.lr: 0.002
+tau.json_args.base_threshold: 0.32
+tau.json_args.linear_coeff: -0.1
+hitrate: 0.0505 ± 0.0012
+recall: 0.0373 ± 0.0004
+ndcg: 0.0112 ± 0.0001
+coverage: 0.0952 ± 0.0058
+--------------------------------
+Experiment name: MACLoss[min=0.06,max=0.07]
+optimizer.json_args.lr: 0.002
+tau.json_args.base_threshold: 0.32
+tau.json_args.linear_coeff: -0.05
+hitrate: 0.0507 ± 0.0009
+recall: 0.0378 ± 0.0005
+ndcg: 0.0113 ± 0.0001
+coverage: 0.1002 ± 0.0077
+--------------------------------
