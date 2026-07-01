@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/amazon/linear_tau_30e_part2/linear_tau_30e_part2.yaml
+python main.py configs/amazon/linear_tau_30e_part2/linear_tau.yaml

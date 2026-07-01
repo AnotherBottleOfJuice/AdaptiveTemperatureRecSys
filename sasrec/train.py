@@ -137,6 +137,11 @@ class Trainer:
 
         self.writer.log_parameters(flat_params)
 
+        mlflow.log_input(
+            mlflow.data.from_numpy(np.empty(0), name=self.config.data.dataset.class_name),
+            context="training",
+        )
+
     def ddp_setup(self, rank, world_size):
         self.graph = DDP(self.graph, device_ids=[rank], output_device=rank)
         self.train_dataset.ddp_setup(rank, world_size)

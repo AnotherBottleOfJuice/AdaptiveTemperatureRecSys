@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=cos_per_user_tau_30e
+#SBATCH --job-name=param_tau_30e
 #SBATCH --account=proj_1876
 #SBATCH --time=20:00:00
 #SBATCH --nodes=1
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/yandex/cos_per_user_tau_30e/cos_per_user_tau_30e.yaml
+python main.py configs/yandex/param_tau_30e/param_tau.yaml

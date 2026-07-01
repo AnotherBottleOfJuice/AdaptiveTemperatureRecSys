@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=amazon_macloss_tau_30e
+#SBATCH --job-name=amazon_cos_per_user_tau_30e
 #SBATCH --account=proj_1876
 #SBATCH --time=18:00:00
 #SBATCH --nodes=1
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/amazon/macloss_tau_30e/macloss_tau_30e.yaml
+python main.py configs/amazon/cos_per_user_tau_30e/cos_per_user_tau.yaml

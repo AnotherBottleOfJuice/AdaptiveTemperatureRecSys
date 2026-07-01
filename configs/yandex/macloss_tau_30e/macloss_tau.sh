@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=amazon_constant_tau_30e_part5
+#SBATCH --job-name=macloss_tau_30e
 #SBATCH --account=proj_1876
-#SBATCH --time=14:00:00
+#SBATCH --time=20:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=2
 #SBATCH --gpus=2
@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/amazon/constant_tau_30e_part5/constant_tau_30e_part5.yaml
+python main.py configs/yandex/macloss_tau_30e/macloss_tau.yaml

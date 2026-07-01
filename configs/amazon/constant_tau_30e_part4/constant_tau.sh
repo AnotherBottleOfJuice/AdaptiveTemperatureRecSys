@@ -10,4 +10,4 @@
 
 module load Python
 source activate adaptivetemperaturerecsys
-python main.py configs/amazon/constant_tau_30e_part4/constant_tau_30e_part4.yaml
+python main.py configs/amazon/constant_tau_30e_part4/constant_tau.yaml
