@@ -221,6 +221,9 @@ dataset/dataset.zip
 model/model.zip
 
 
+# MLflow tracking DB (synced via rsync, not git)
+mlruns/
+
 # Cluster output files
 *.out
 
