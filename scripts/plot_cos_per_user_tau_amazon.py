@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 MLFLOW_DB = Path("mlruns/mlflow.db")
-EXPERIMENT = "cos_per_user_tau_30e"
+EXPERIMENT = "cos_per_user_tau"
 METRIC = "valid/recall"
 
 MARKERS = ["o", "s", "^", "D", "v", "P", "X"]
@@ -43,6 +43,8 @@ def load_runs(db, experiment):
         params = dict(
             c.execute("SELECT key, value FROM params WHERE run_uuid=?", (ru,)).fetchall()
         )
+        if "AmazonBeautyDataset" not in params.get("data_dataset", ""):
+            continue
         targs = ast.literal_eval(params.get("tau_json_args", "{}"))
         vals = [
             v
