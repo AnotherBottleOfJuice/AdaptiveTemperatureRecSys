@@ -104,45 +104,93 @@ def load_experiments(conn, names, dataset=None):
     return runs
 
 
-def config_label(params):
+_ALWAYS_EXCLUDE = {"seed", "config_name"}
+_LR_PARAM = "learning_rate"
+
+# Friendlier column names for known top-level params.
+_KEY_DISPLAY = {
+    "tau_class_name": "schedule",
+    "data_dataset": "dataset",
+}
+
+
+def flat_params(params):
+    """All params with every *_json_args dict expanded as {prefix}.{subkey} entries."""
+    flat = {}
+    for k, v in params.items():
+        if k.endswith("_json_args"):
+            prefix = k[: -len("_json_args")]  # "tau", "optimizer", "scheduler", …
+            if v:
+                try:
+                    for sk, sv in ast.literal_eval(v).items():
+                        flat[f"{prefix}.{sk}"] = sv
+                except (ValueError, SyntaxError):
+                    flat[k] = v  # keep raw on parse failure
+        else:
+            flat[k] = v
+    return flat
+
+
+def _display_key(k):
+    """Short display name for a flat_params key."""
+    if "." in k:
+        prefix, subkey = k.split(".", 1)
+        # avoid redundant prefix: tau.tau_min -> tau_min, not tau_tau_min
+        return subkey if subkey.startswith(f"{prefix}_") else f"{prefix}_{subkey}"
+    return _KEY_DISPLAY.get(k, k)
+
+
+def _display_val(k, v):
+    """Human-friendly value for a param key."""
+    if k == "tau_class_name":
+        return str(v).removesuffix("Tau")
+    if k == "data_dataset":
+        for name, cls in DATASET_FILTERS.items():
+            if cls in str(v):
+                return name
+        return v
+    return v
+
+
+def find_varying_params(runs):
+    """Return the set of flat_params keys that take >1 distinct value across runs."""
+    all_flat = [flat_params(r["params"]) for r in runs.values()]
+    all_keys = set().union(*(set(f) for f in all_flat))
+    return {
+        k for k in all_keys
+        if k not in _ALWAYS_EXCLUDE
+        and not k.endswith("_seed")       # training_seed, random_seed, …
+        and not k.endswith("_json_args")  # raw parse-failed entries
+        and len({str(f.get(k)) for f in all_flat}) > 1
+    }
+
+
+def config_label(params, varying_keys):
     """Human label for a config, independent of the learning rate.
 
     Returns (base_label, lr) so runs can be grouped and lr-compared.
+    varying_keys is the set of flat_params keys that differ across runs
+    (see find_varying_params); only those appear in the label.
     """
-    lr = params.get("learning_rate", "?")
-    tau_cls = params.get("tau_class_name", "")
-    try:
-        targs = ast.literal_eval(params.get("tau_json_args", "{}"))
-    except (ValueError, SyntaxError):
-        targs = {}
-
-    if tau_cls == "MACLossTau":
-        base = (f"bt={targs.get('base_threshold')}, "
-                f"lc={targs.get('linear_coeff')}")
-    elif tau_cls == "LinearTau" or (targs.get("tau_min") is not None):
-        # Prefix the schedule class so pooling several experiments doesn't merge
-        # e.g. Linear and Cos runs that share the same tau_min/tau_max range.
-        sched = tau_cls.replace("Tau", "") if tau_cls else "Sched"
-        base = f"{sched} min={targs.get('tau_min')}, max={targs.get('tau_max')}"
-        # shift/scale (ShiftedCosPerUserTau & friends) are part of the config
-        # identity: without them every shift/scale combo collapses into one group.
-        if targs.get("shift") is not None:
-            base += f", shift={targs.get('shift')}"
-        if targs.get("scale") is not None:
-            base += f", scale={targs.get('scale')}"
-    elif tau_cls == "ConstantTau" or (targs.get("initial_tau") is not None):
-        base = f"tau={targs.get('initial_tau')}"
-    else:
-        base = params.get("tau_json_args", tau_cls or "config")
+    lr = params.get(_LR_PARAM, "?")
+    flat = flat_params(params)
+    label_keys = sorted(k for k in varying_keys if k not in (_LR_PARAM, "optimizer.lr"))
+    parts = []
+    for k in label_keys:
+        v = flat.get(k)
+        if v is not None:
+            parts.append(f"{_display_key(k)}={_display_val(k, v)}")
+    base = ", ".join(parts) if parts else "(default)"
     return base, lr
 
 
 def group_runs(runs):
     """{(base_label, lr): [curve_dicts]}, preserving first-seen order of bases."""
+    varying_keys = find_varying_params(runs)
     groups = defaultdict(list)
     base_order, lr_order = [], []
     for r in runs.values():
-        base, lr = config_label(r["params"])
+        base, lr = config_label(r["params"], varying_keys)
         groups[(base, lr)].append(r["curves"])
         if base not in base_order:
             base_order.append(base)
@@ -495,6 +543,16 @@ def table_base_linear_pivot(runs, window, metric="valid/recall"):
     return "\n".join(out)
 
 
+def adapt_steps(steps, ne):
+    """Re-generate steps with the same spacing but ending exactly at ne."""
+    if not steps or ne <= 0:
+        return steps
+    step_size = steps[1] - steps[0] if len(steps) > 1 else steps[0]
+    adapted = list(range(step_size, ne, step_size))
+    adapted.append(ne)
+    return adapted
+
+
 def main():
     args = parse_args()
     fine = [int(x) for x in args.fine_steps.split(",")]
@@ -508,6 +566,10 @@ def main():
             f"No active runs in {args.experiment}"
             + (f" for dataset '{args.dataset}' ({dataset})." if dataset else "."))
     groups, base_order, lr_order = group_runs(runs)
+
+    ne = max((max_epochs(cl) for cl in groups.values()), default=0)
+    fine = adapt_steps(fine, ne)
+    coarse = adapt_steps(coarse, ne)
 
     title = " + ".join(args.experiment)
     if args.dataset:
